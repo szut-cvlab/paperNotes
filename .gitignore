@@ -1,0 +1,24 @@
+# VitePress
+.vitepress/cache
+.vitepress/dist
+
+# Node modules
+node_modules
+
+# PDF 和临时文件
+raw/
+txts/
+*.pdf
+*.txt
+
+# 索引文件（可选）
+index.jsonl
+
+# OS files
+.DS_Store
+Thumbs.db
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*
+  
