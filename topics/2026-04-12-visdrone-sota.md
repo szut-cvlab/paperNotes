@@ -131,6 +131,56 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
   - CZDet (Cascaded Zoom-in Detector, CVPR Workshops 2023): 复用检测器本身的检测结果生成zoom-in区域，不需要额外聚焦模块，兼具uniform cropping简单性和density cropping有效性
   - 选CZDet作baseline原因：在"去哪里找"已解决的前提下，验证"特征增强"模块的增益
 
+### TG-YOLO / Text-Guided YOLO (2026.02)
+- 论文: [arXiv:2602.19503](https://arxiv.org/abs/2602.19503) (Applied Computer Science, Vol.22, No.1, 2026)
+- 核心: 基于YOLO-World的文本引导检测 + C3k2替换C2f + 轻量化
+- baseline: YOLO-World
+- 结果: VisDrone val mAP@0.5=30.7% (输入640)
+- 关键创新:
+  - **C3k2替换C2f**: 用C3k2层替换YOLOv8 backbone中的C2f层，更精确表示小目标局部特征和清晰边界
+  - **并行处理优化**: 提升处理速度和效率，同时实现更轻量的模型设计
+  - **文本引导检测**: 基于YOLO-World，用户可输入文本prompt指定检测目标
+- 复杂度: 参数 4M→3.8M(-5%), FLOPs 15.7B→15.2B(-3.2%)
+- 笔记: 提升幅度很小(mAP@0.5 30.4→30.7)，且只报告了mAP@0.5而非COCO AP；核心贡献是C3k2替换+文本引导思路，而非精度；发表于Applied Computer Science，**非主流CV期刊**
+
+### ZoomDet / Adaptive Image Zoom-in (2026.02)
+- 论文: [arXiv:2602.07512](https://arxiv.org/abs/2602.07512) (ISPRS J. Photogrammetry and Remote Sensing 2026, 遥感顶刊)
+- 核心: 非均匀图像缩放 + 框坐标变换，在像素级放大目标区域后检测
+- baseline: Faster R-CNN + FPN / YOLOv8
+- 结果: VisDrone val Faster R-CNN AP=22.8(+2.0), AP_S=13.9(+2.7)；YOLOv8 AP=25.9(+1.3), AP_S=15.7(+2.0)；SeaDronesSee数据集 AP=43.3(+8.4)
+- 代码: https://github.com/twangnh/zoomdet_code
+- 关键创新:
+  - **OffsetNet**: 轻量偏移预测网络(ResNet-18前两层+1层Conv)，预测每个像素的空间偏移(Δx,Δy)，参数化非均匀图像变换T:(x,y)→(u,v)；偏移场无GT，通过Object Zooming Loss间接监督——让GT框在zoomed空间中面积变大→反传逼网络学出"拉开目标区域像素"的偏移
+  - **Object Zooming Loss**: L_zoom = Σ max(log((α+ε)/(m_i+ε)), 0)^β，m_i=zoomed后框面积/原框面积，最大化目标放大比；α控制放大阈值，β下调易样本权重(类似Focal Loss)
+  - **Corner-Aligned Box Transformation**: 将GT框两角点通过正映射查找表反查最近邻→得到zoomed空间框坐标；推理时将预测框双线性插值映射回原图空间；前向+后向变换IoU>92%
+  - **Weight Decay正则化**: 对OffsetNet的权重衰减天然正则化偏移→趋于均匀采样→减轻图像畸变
+- 与其他zooming方法正交: 可叠加patch-based(ESOD/DG)、implicit feature zooming(RemDet/RAF)，进一步+0.7~1.2 AP
+- 额外开销: OffsetNet仅683K参数，Faster R-CNN +3.2ms延迟；ZoomDet-rb(复用检测器backbone)仅+0.1ms
+- 局限: 大目标可能退化(AP_L下降)；拥挤场景训练不稳定；仅支持检测框变换，不支持mask
+- 流程: 原始图像 → OffsetNet预测偏移(Δx,Δy) → 非均匀重采样生成zoomed图像 → 送入检测器 → 检测结果映射回原图坐标；OffsetNet与检测器端到端联合训练，但检测器本身不需修改，可叠加任意检测器
+- 与其他方法的作用阶段对比:
+  - **ZoomDet**: 图像空间预处理阶段（像素级重采样）
+  - **Patch-based(ESOD/DG)**: 图像空间裁剪阶段
+  - **Feature zooming(RemDet/RAF)**: 特征空间增强阶段
+  - 三者正交可叠加，ZoomDet+ESOD/DG或RemDet/RAF可进一步+0.7~1.2 AP
+- 笔记: 与CZDet/ClusDet等crop-based方法不同——ZoomDet不裁剪图像，而是对整图做像素级非均匀重采样，单次前传即可；思想类似可变形卷积但作用在图像空间而非特征空间；对极小目标增益最大（像素不够→特征提不出来是硬限制，像素放大直接跨过阈值从"检不到"变"检得到"，是质的飞跃；大目标像素本来就够，放大边际收益递减甚至为负→AP_L下降）
+
+### EFSI-DETR (2026.01)
+- 论文: [arXiv:2601.18597](https://arxiv.org/abs/2601.18597) (预印本, 武汉大学)
+- 核心: 基于RT-DETR的频域-语义融合框架，模拟频谱分解+动态专家卷积+细粒度特征保留
+- baseline: RT-DETR-R18/R50，bs=8训练300 epochs，输入640/800
+- 结果: VisDrone val 640输入AP=33.1(+6.2 vs RT-DETR-R18 26.9), AP_S=24.8(+6.5), 4090上188FPS；800输入AP=35.0, AP_S=27.3；CODrone AP=20.2
+- 关键创新:
+  - **DyFusNet (动态频域-空间统一协同网络)**: 不用FFT，在空间域模拟频谱分解——AvgPool(低频) + Identity(中频) + DWConv(高频)，由动态权重α_i自适应融合；再用SFCM做多核空间聚合+通道注意力调制
+  - **ESFC (高效语义特征浓缩器)**: DEConv动态专家卷积(K=3个专家，按注意力权重选核) + EGBlock(Ghost卷积降冗余) + DGA双域引导聚合(ECA通道注意力+空间注意力)；用在Deep阶段效果最好
+  - **FFR (细粒度特征保留)**: 引入backbone浅层S1/S2保留空间细节；decoder去掉F5减少语义冗余，用F2/F3/F4
+- 消融: FFR贡献最大(+4.4 AP, +4.9 AP_S)；DyFusNet再+1.4 AP；ESFC再+0.4 AP同时减1.5M参数
+- 与RemDet-L对比: AP +3.8, AP_S +6.1, 延迟5.3ms vs 7.1ms, 参数27.3M vs 35.3M
+- 局限: AP_L=44.0偏低(RemDet-L 55.8)，大目标检测有退化；ESFC增益相对较小
+- 笔记: 为什么不用FFT？FFT难以kernel fusion、需要复数张量增加带宽、对不规则输入需padding、边缘NPU上FFT优化少——用空间算子模拟频谱分解更deploy-friendly；FFR引入S1/S2(1/4 1/8分辨率)+去掉F5(1/32分辨率深层)反而在VisDrone上更好(AP 30.1→31.3, AP_S 22.1→23.2, 参数-2.8M)——F5空间分辨率极低(~20×20)，与小目标几乎无关且与浅层语义冗余，去掉反而减少干扰；但代价是AP_L退化(44.0 vs RemDet-L 55.8)，本质是VisDrone大目标极少、牺牲AP_L换AP_S在整体AP上更划算的场景驱动设计；CODrone数据集(arXiv:2504.20032)是旋转框(OBB)标注，但本文用HBB指标评测(标准COCO AP)，旋转角度信息被忽略——OBB转HBB后框变大包含更多背景
+
+
+
 ### SOD-YOLO (2025.07)
 - 论文: [arXiv:2507.12727](https://arxiv.org/abs/2507.12727)
 - 核心: ASF多尺度融合 + P2小目标检测层 + Soft-NMS
