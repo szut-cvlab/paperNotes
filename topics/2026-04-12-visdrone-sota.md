@@ -12,41 +12,41 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
 
 | ArXiv ID | 标题 | 引用 | VisDrone 结果 |
 |----------|------|------|---------------|
+| [2602.23031](https://arxiv.org/abs/2602.23031) | **SLPA+MSFEM**: Spatial Laplacian Pyramid Attention | - | - |
+| [2602.19503](https://arxiv.org/abs/2602.19503) | **TG-YOLO**: Text-Guided Vision Model for Small Instances | - | - |
 | [2602.07523](https://arxiv.org/abs/2602.07523) | **CA-YOLO**: Cross Attention + Biomimetic Localization | - | mAP50=38.4%, mAP=23.1% |
-| [2602.23031](https://arxiv.org/abs/2602.23031) | Small Object Detection with Spatial Laplacian Pyramid Attention | - | - |
-| [2602.19503](https://arxiv.org/abs/2602.19503) | Text-Guided Vision Model for Small Instances | - | - |
-| [2602.07512](https://arxiv.org/abs/2602.07512) | Adaptive Image Zoom-in for UAV Object Detection | - | - |
-| [2601.18597](https://arxiv.org/abs/2601.18597) | EFSI-DETR: Efficient Frequency-Semantic Integration for UAV | - | - |
+| [2602.07512](https://arxiv.org/abs/2602.07512) | **ZoomDet**: Adaptive Image Zoom-in for UAV Object Detection | - | - |
+| [2601.18597](https://arxiv.org/abs/2601.18597) | **EFSI-DETR**: Efficient Frequency-Semantic Integration for UAV | - | - |
 
 ### 2025 年
 
 | ArXiv ID | 标题 | 引用 | VisDrone 结果 |
 |----------|------|------|---------------|
-| [2507.12727](https://arxiv.org/abs/2507.12727) | **SOD-YOLO**: Small Object Detection in UAV | - | **mAP50=52.6%, mAP=35.1%** (最高) |
-| [2504.20670](https://arxiv.org/abs/2504.20670) | **FBRT-YOLO**: Faster and Better for Real-Time Aerial | 34 | mAP50=48.4%, mAP=30.1% (轻量) |
-| [2504.05601](https://arxiv.org/abs/2504.05601) | **AD-Det**: Focused Small Objects + Balanced Tail Classes | 5 | UAV小目标提升 |
-| [2503.04452](https://arxiv.org/abs/2503.04452) | **FDM-YOLO**: High Resolution + PConv + EMA | - | mAP50=42.5%, 参数量-38% |
-| [2501.01855](https://arxiv.org/abs/2501.01855) | UAV-DETR: Efficient End-to-End Object Detection | 25 | - |
 | [2510.03858](https://arxiv.org/abs/2510.03858) | Cross-View Open-Vocabulary Object Detection in Aerial Imagery | 0 | - |
 | [2509.23056](https://arxiv.org/abs/2509.23056) | FMC-DETR: Frequency-Decoupled Multi-Domain Coordination | 0 | - |
 | [2509.12918](https://arxiv.org/abs/2509.12918) | Compression Framework for YOLOv8 on Edge Devices | 0 | - |
+| [2507.12727](https://arxiv.org/abs/2507.12727) | **SOD-YOLO**: Small Object Detection in UAV | - | **mAP50=52.6%, mAP=35.1%** (最高) |
 | [2507.00825](https://arxiv.org/abs/2507.00825) | High-Frequency Semantics for DETR in UAV Imagery | 0 | - |
 | [2506.12697](https://arxiv.org/abs/2506.12697) | MGDFIS: Multi-scale Global-detail Feature Integration | 0 | - |
 | [2505.05741](https://arxiv.org/abs/2505.05741) | Dome-DETR: Density-Oriented Tiny Object Detection | 1 | - |
+| [2504.20670](https://arxiv.org/abs/2504.20670) | **FBRT-YOLO**: Faster and Better for Real-Time Aerial | 34 | mAP50=48.4%, mAP=30.1% (轻量) |
 | [2504.11470](https://arxiv.org/abs/2504.11470) | SO-DETR: Dual-Domain Features and Knowledge Distillation | 4 | - |
+| [2504.05601](https://arxiv.org/abs/2504.05601) | **AD-Det**: Focused Small Objects + Balanced Tail Classes | 5 | UAV小目标提升 |
+| [2503.04452](https://arxiv.org/abs/2503.04452) | **FDM-YOLO**: High Resolution + PConv + EMA | - | mAP50=42.5%, 参数量-38% |
 | [2502.12415](https://arxiv.org/abs/2502.12415) | Gaseous Object Detection | 2 | - |
+| [2501.01855](https://arxiv.org/abs/2501.01855) | UAV-DETR: Efficient End-to-End Object Detection | 25 | - |
 
 ### 2024 年
 
 | ArXiv ID | 标题 | 引用 | VisDrone 结果 |
 |----------|------|------|---------------|
+| [2412.16840](https://arxiv.org/abs/2412.16840) | Seamless Detection: Salient + Camouflaged Object Detection | 9 | - |
 | [2412.10040](https://arxiv.org/abs/2412.10040) | **RemDet**: Rethinking Efficient Model Design for UAV | 7 | - |
+| [2411.02861](https://arxiv.org/abs/2411.02861) | Centerness-based Knowledge Distillation for Drone | 0 | - |
 | [2411.00485](https://arxiv.org/abs/2411.00485) | **LAM-YOLO**: Involution + aux heads | - | mAP50 提升 7.1% |
 | [2407.16424](https://arxiv.org/abs/2407.16424) | ESOD: Efficient Small Object Detection on High-Res | 20 | - |
-| [2406.05755](https://arxiv.org/abs/2406.05755) | A DeNoising FPN With Transformer R-CNN for Tiny Object | 80 | - |
-| [2412.16840](https://arxiv.org/abs/2412.16840) | Seamless Detection: Salient + Camouflaged Object Detection | 9 | - |
-| [2411.02861](https://arxiv.org/abs/2411.02861) | Centerness-based Knowledge Distillation for Drone | 0 | - |
 | [2407.06127](https://arxiv.org/abs/2407.06127) | Better Sampling for End-to-End Small Object Detection | 3 | - |
+| [2406.05755](https://arxiv.org/abs/2406.05755) | A DeNoising FPN With Transformer R-CNN for Tiny Object | 80 | - |
 | [2406.04140](https://arxiv.org/abs/2406.04140) | Context-Aware Aerial Object Detection | 0 | - |
 | [2405.19822](https://arxiv.org/abs/2405.19822) | Improving Object Detector Training on Synthetic Data | 8 | - |
 | [2401.14661](https://arxiv.org/abs/2401.14661) | From Blurry to Brilliant: YOLO + Super Resolution | 0 | -
