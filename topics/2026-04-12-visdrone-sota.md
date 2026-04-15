@@ -303,29 +303,136 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
 
 | ArXiv ID | 标题 | 引用 | VisDrone 结果 |
 |----------|------|------|---------------|
-| [2412.16840](https://arxiv.org/abs/2412.16840) | Seamless Detection: Salient + Camouflaged Object Detection | 9 | - |
 | [2412.10040](https://arxiv.org/abs/2412.10040) | **RemDet**: Rethinking Efficient Model Design for UAV | 7 | - |
-| [2411.02861](https://arxiv.org/abs/2411.02861) | Centerness-based Knowledge Distillation for Drone | 0 | - |
 | [2411.00485](https://arxiv.org/abs/2411.00485) | **LAM-YOLO**: Involution + aux heads | - | mAP50 提升 7.1% |
 | [2407.16424](https://arxiv.org/abs/2407.16424) | ESOD: Efficient Small Object Detection on High-Res | 20 | - |
 | [2407.06127](https://arxiv.org/abs/2407.06127) | Better Sampling for End-to-End Small Object Detection | 3 | - |
 | [2406.05755](https://arxiv.org/abs/2406.05755) | A DeNoising FPN With Transformer R-CNN for Tiny Object | 80 | - |
-| [2406.04140](https://arxiv.org/abs/2406.04140) | Context-Aware Aerial Object Detection | 0 | - |
+| [2404.04140](https://arxiv.org/abs/2404.04140) | Context-Aware Aerial Object Detection | 0 | - |
 | [2405.19822](https://arxiv.org/abs/2405.19822) | Improving Object Detector Training on Synthetic Data | 8 | - |
 | [2401.14661](https://arxiv.org/abs/2401.14661) | From Blurry to Brilliant: YOLO + Super Resolution | 0 | - |
 
 #### RemDet (2024.12)
-- 论文: [arXiv:2412.10040](https://arxiv.org/abs/2412.10040) (AAAI 2025)
-- 核心: ChannelC2f + GatedFFN + CED，信息损失设计准则
-- baseline: YOLOv8 风格的一阶段 anchor-free
-- 结果: VisDrone l 输入640 val mAP50=47.4，4090 上 110 FPS
+- 论文: [arXiv:2412.10040](https://arxiv.org/abs/2412.10040) (AAAI 2025, 浙江师范大学HZAI实验室)
+- 核心: 基于信息瓶颈理论的轻量化UAV检测器——信息损失设计准则+ChannelC2f高维扩展+GatedFFN乘法门控+CED上下文增强下采样
+- baseline: YOLOv8 (基于MMDetection框架重新实现)
+- 训练: SGD, lr=0.01, momentum=0.937, weight_decay=5e-4, batch=128(8GPU×16), 300 epochs, 640×640, PyTorch+MMDetection, scratch训练(不用预训练), mixup+Mosaic数据增强, Flat-Cosine lr schedule
+- 结果(VisDrone val, 640输入): RemDet-Tiny 3.2M/4.6G AP=21.8/AP50=37.1/APs=12.7; RemDet-S 11.9M/16.0G AP=24.7/AP50=41.5/APs=15.4; RemDet-M 23.3M/34.4G AP=27.3/AP50=44.7/APs=17.3(APs远超YOLOv8-M 14.5→18.2); RemDet-L 35.3M/66.7G AP=29.3/AP50=47.4/AP75=30.3/APs=18.7, latency=7.1ms; RemDet-X 74.1M/112G AP=29.9/AP50=48.3/APs=19.5, latency=8.9ms
+- 多数据集测试: VisDrone-2019, UAVDT, COCO2017 (三数据集)
 - 关键创新:
-  - **信息损失准则**: 重新思考小目标密集 UAV 图像的设计准则
-  - **ChannelC2f**: 高维表示减少信息损失，增强小目标
-  - **GatedFFN**: 乘法门控比 FFN 更具成本效益
-  - **CED**: ViT+CNN 下采样结合，减少信息损失
+  - **信息瓶颈理论设计准则**: 神经网络层的目标是 I(X;X') + βI(X;Y|X') → 最小化(保留与预测Y相关的信息，丢弃无关)；维度扩展时特征权重显著增强→高维表示更有效完成"学习"和"压缩"；**信息损失 I(Y;h_i) ≥ I(Y;h_{i+1}) 逐层递减，设计应减少每一层的信息损失**
+  - **ChannelC2f**: C2f的通道扩展变体——总体通道扩展从0.5增到1.0(即输入通道数=输出通道数)，Bottleneck内部扩展比从1降到0.25(减少密集计算)；本质是**用更多通道存信息、用更窄Bottleneck做计算**；类似ResNet的bottleneck设计但反向——外宽内窄
+  - **GatedFFN**: 基于GLU(Gated Linear Units)的乘法门控替代FFN——两路卷积结果做逐元素乘法(w₁ᵀx · w₂ᵀx)而非多项式加法(w₀ᵀx = w₁ᵀx + w₂ᵀx)；乘法类似核函数 K(x,z)=φ(x)·φ(z) 的隐式高维映射，**相同计算量下乘法比加法(FFN)表达力更强**；通道扩展到9的乘法≈通道扩展到7的FFN计算量，但mAP高0.3%；结构：Conv→Split两路→逐元素乘法→1×1Conv融合→输出
+  - **CED (Context Enhanced Downsample)**: Inverted Bottleneck(stride=1, 扩展比=1) + DepthwiseConv + PatchMerge + PointwiseConv；Inverted Bottleneck用stride=1避免信息丢失；PatchMerge本质是PixelUnshuffle(空间→通道重排, H×W×C → H/2×W/2×4C)，将空间信息拼到通道维度让后续1×1Conv"看到"更多上下文(操作形式与ViT的PatchEmbedding相同，但后面接的是Conv而非attention)；**本质是"加深下采样模块+空间信息转通道"来弥补分辨率下降的信息损失**；stage1的通道扩展比从1增到2效果最好但增加延迟，所以只在stage1使用
 - 代码: https://github.com/HZAI-ZJNU/RemDet
-- 笔记: [2024-12-13-remdet](../readings/2024-12-13-remdet)
+- 笔记: 信息瓶颈理论提供了"为什么高维扩展有效"的理论解释——维度扩展→特征权重增强→信息损失减少；**GatedFFN的乘法替代加法是核心洞察**——乘法隐式映射到高维空间(类似核技巧)，同计算量下表达力更强，这也是"乘法比FFN对高维表示更划算"的数学本质；CED的PatchMerge思路与ViT的patch embedding类似，但在下采样环节使用，让1×1Conv能"看到"更多空间信息；与YOLO-World/PP-YOLOE等对比，RemDet-M在VisDrone上AP=27.3远超YOLOv8-M的24.4(+2.9)，且COCO上也达到49.8 AP说明不是过拟合；**局限：RemDet-X仅29.9 AP，比ClusDet/GLASN等crop-detect方法(30.7)低，说明纯架构设计在极限精度上不如裁剪策略；UAVDT上对比方法较少；scratch训练300ep可能不如预训练baseline公平**
+
+#### Better Sampling (2024.07)
+- 论文: [arXiv:2407.06127](https://arxiv.org/abs/2407.06127) (西交利物浦大学, Zile Huang等)
+- 核心: 端到端小目标检测的采样优化——SPR采样点约束+ST尺度对齐目标+SR任务解耦重加权
+- baseline: RT-DETR-R50
+- 训练: AdamW, lr=0.0002, weight_decay=1e-4, 2000 iter warmup, EMA(decay=0.9999), 数据增强(color distortion/flip/resize/expansion/crop), ResNet-50 backbone
+- 结果(VisDrone test, R-50): AP=32.3/AP50=66.4/AP75=36.7/APs=23.7/APm=50.0/APL=60.2, 参数43M；比baseline RT-DETR-R50(28.9)高+3.4 AP
+- 结果(SODA-D test, R-50): AP=31.4/AP50=63.7/AP75=28.1/APes=15.6/APrs=29.7/APgs=38.4, 比baseline(29.3)高+2.1 AP
+- 多数据集测试: VisDrone-2019, SODA-D (两数据集)
+- 关键创新:
+  - **SPR (Sample Points Refinement)**: 约束deformable attention中box外采样点的位置和权重——①offset loss: 让box外采样点尽量靠近box边界(不强制进box, η>1保持在外但靠近)；②attention loss: 让box外采样点的注意力权重低于box内所有点的权重；**本质是"软约束"采样点聚焦ROI区域但不丢失周边信息"，而非硬性截断**
+  - **ST (Scale-aligned Target)**: 将尺度信息融入分类目标——定义面积比ρ=A(B)/A(B̂)，结合IoU(u)生成目标置信度 c=u^β·v^(1-β)，其中v=e^{-θ(√ρ-1)²}；**核心洞察：IoU相同但面积比不同时，面积比更接近1(预测框面积≈GT面积)的检测更可靠**；β=0.73(几何平均偏向IoU但仍给尺度信息显著权重)，θ=6
+  - **SR (Sample Reweighting)**: 任务解耦的样本重加权——用分类/回归头的隐藏层特征拼接→Conv生成共享注意力A→分别与H^cls/H^reg做逐元素乘→Conv压缩得到各query的分类/回归权重w；训练初期折扣r=w^(1-|t-s|)防止未收敛时权重过大，收敛后r≈w；**本质是让模型自动关注"难样本"(分类和回归不一致的样本)，而非人工定义难易**
+- 消融(VisDrone): baseline=29.9→+ST=30.5(+0.6)→+SR=31.2(+0.7)→+SPR=31.8(+0.6)→三者叠加=32.3(+0.5协同增益)
+- 超参: β=0.73最优(0.3→30.4, 0.5→31.4, 0.73→32.3, 0.9→31.9)；θ=6最优；γ=1.5+α=0.5最优；η逐层递减(1.5,1.3,1.2,1.1,1.05,1.0)最优——**浅层探索定位→深层精修边界**
+- 泛化性: ST+SR迁移到GFL(+1.9/+2.1 AP)和TOOD(+0.8/+2.0 AP)均有效
+- 笔记: 三个策略都围绕"采样质量"——SPR管"在哪采样"，ST管"采样目标是什么"，SR管"采样权重怎么分配"；ST的面积比洞察很直观(IoU不变但预测框过大/过小都不好)；SR的任务解耦设计使分类/回归各自获得独立的重加权信号；**局限：仅用R-50 backbone，未在更大backbone或轻量化模型上验证；SODA-D提升(+2.1)不如VisDrone(+3.4)，说明方法对极小目标增益有限；η的6层逐层设置需手动调参；未与YOLO系列等非DETR方法对比速度**
+
+#### ESOD (2024.07)
+- 论文: [arXiv:2407.16424](https://arxiv.org/abs/2407.16424) (TIP 2024, 阿里云+浙江大学, Kai Liu等)
+- 核心: 高分辨率图像高效小目标检测——特征级filter-then-detect，复用backbone做目标搜索+自适应切片+稀疏检测头
+- baseline: YOLOv8 (FCOS-Style), 也支持ViT-based (ViTDet)
+- 训练: 1.25×放大输入(1536→1920)，ObjSeeker与检测器联合训练(warm-up阶段用GT mask，之后用预测mask)
+- 结果(VisDrone val, 1536输入): ESOD-YOLOv8-M AP=36.0/AP50=59.7/APs=28.3, 180.6 GFLOPs; 比baseline(1536) AP+4.7/APs+7.3; 比ClusDet高+8.1 AP
+- 结果(UAVDT test): ESOD AP=31.5/AP50=57.4, 比baseline高+8.0 AP
+- 结果(TinyPerson test): ESOD AP50^t=67.3/AP50^s=67.8, 比baseline高显著
+- 多数据集测试: VisDrone-2019, UAVDT, TinyPerson (三数据集)
+- 关键创新:
+  - **ObjSeeker**: 复用backbone的stem(前几层)特征→轻量分割头预测objectness mask(哪些patch含目标)；**不用额外网络**，与检测器共享backbone权重，避免ClusDet等方法的额外计算开销；伪标签用高斯热图(GT中心→高斯核)，也可用SAM/Hybrid
+  - **AdaSlicer (Adaptive Feature Slicer)**: 根据ObjSeeker的mask自适应切片特征图——以目标中心为锚点向外扩展patch，而非均匀网格切片；解决均匀切片导致的物体截断问题(截断→漏检)；**本质是"以目标为中心的动态ROI"，而非固定网格裁剪**；CNN版本需Algorithm 1(逐步扩展)，ViT版本直接保留激活token更简单
+  - **SparseHead**: 用ObjSeeker预测的object centers作为稀疏卷积的采样点，只在可能含目标的位置做检测头计算；**无需额外学习参数，training-free**，节省>50 GFLOPs
+  - **特征级操作(非像素级)**: 整个filter-then-detect在特征图上完成，避免了像素级裁剪→重新提特征的冗余计算
+  - **数据流细节**: ①Stem提取特征F → ObjSeeker从F预测objectness mask M；②AdaSlicer根据M把F切成多个patch(推理:自适应不等大/训练:均匀8×8等大)，patch拼成新batch + offsets(原图坐标)送入Neck(FPN)；③SparseHead从M取目标中心坐标(局部极大值+阈值)，只在FPN输出的这些稀疏位置做卷积；④检测框用offsets映射回原图坐标；**同一mask M两用：AdaSlicer决定"切哪"，SparseHead决定"在哪算"**
+- 消融(VisDrone, YOLOv8-M, 1920输入): baseline(412.2G)=31.3 AP→+高分辨率=33.7(+2.4 APs)→+Uni FeatSlicer=30.5(-3.2,截断严重)→+AdaSlicer=35.7(+5.2,修复截断)→+SparseHead=36.0(+0.3); AdaSlicer降40%计算，SparseHead再降50G
+- BPR(目标召回率): box级99.3%/center级98.3%，极少漏切
+- 代码: https://github.com/alibaba/esod
+- 笔记: **核心洞察是"高分辨率对小目标有用但70%区域是背景→在特征级先找目标再切片检测"**，比ClusDet/UFPMP的"额外网络找区域→像素级裁剪→重新提特征"高效得多；AdaSlicer解决截断问题的设计很关键(以目标中心为锚点而非固定网格)；SparseHead是"免费"的计算节省；**三模块分工清晰：ObjSeeker管"在哪找"，AdaSlicer管"怎么切"，SparseHead管"怎么省"**；**局限：AdaSlicer的Algorithm 1不可并行→实际FPS提升有限(29.9 vs 22.8但计算量降50%+)；简化版Algorithm 2可并行但AP降0.3；ViT版本更优雅(直接丢弃token)但未充分实验；未在COCO等通用数据集验证**
+
+#### DNTR (2024.06)
+- 论文: [arXiv:2406.05755](https://arxiv.org/abs/2406.05755) (TGRS 2024, 台湾交大NCTU, Hou-I Liu等)
+- 核心: 去噪FPN + Transformer R-CNN的微小目标检测——DN-FPN对比学习去噪+Trans R-CNN自注意力增强RoI表征
+- baseline: Faster R-CNN + FPN (两阶段框架)
+- 训练: 基于mmdet-aitod框架, AI-TOD训练36 epochs, VisDrone训练12 epochs, ResNet-50 backbone
+- 结果(VisDrone val, R-50, 12ep): DNTR AP=34.4/AP50=57.9/AP75=35.3；UFPMP+DN-FPN AP=37.8/AP50=62.7/AP75=38.6
+- 多数据集测试: AI-TOD, VisDrone (两数据集)
+- 关键创新:
+  - **DN-FPN (DeNoising FPN)**: FPN自顶向下融合时不同尺度特征间无正则化→产生噪声特征；DN-FPN用对比学习抑制每层噪声——将FPN每层特征视为正样本，融合后偏离较大的视为负样本，通过对比loss拉大干净特征与噪声特征的距离；**本质是"用对比学习给FPN融合过程加正则化"，防止跨尺度融合引入不相关信息**；即插即用，ATSS加DN-FPN后12.8→17.9(+5.1)
+  - **Trans R-CNN**: 用Transformer替换标准R-CNN的RoI头——对RoI特征用self-attention替代纯FC，让微小目标获得全局上下文感知；**本质是"用自注意力增强RoI特征表达"，弥补小目标RoI区域像素少、信息不足的问题**
+  - **组合效果**: DN-FPN治"特征融合噪声"(FPN层)，Trans R-CNN治"RoI表征不足"(检测头)，两处改进互补
+- 代码: https://github.com/hoiliu-0801/DNTR
+- 笔记: DN-FPN的对比学习思路简洁有效，但论文未详细说明正负样本构造方式(何种特征为"噪声")；Trans R-CNN是标准思路(self-attention增强RoI)，创新性一般；**亮点在AI-TOD上的APvt(极小目标)从0.0→12.8→15.2，提升巨大**；VisDrone上DNTR本身34.4不算高(同R-50的Co-DETR更好)，但UFPMP+DN-FPN达37.8说明DN-FPN即插即用性不错；**局限：两阶段框架推理速度较慢，未报告FPS；VisDrone结果不如同期DETR方法；DN-FPN的对比学习需额外memory bank或负样本构造，增加训练开销**
+
+#### Context-Aware Aerial Detection (2024.04)
+- 论文: [arXiv:2404.04140](https://arxiv.org/abs/2404.04140) (清华大学+上海AI Lab, Botao Ren等)
+- 核心: 航空图像中利用物体间关系和背景语义的上下文感知检测——RoI Token+CLIP Token双流Transformer编码器
+- baseline: ReDet (旋转框两阶段检测器)
+- 训练: 基于mmdet框架, DOTA系列数据集, ReDet作为baseline
+- 结果(DOTA-v1.0, R-50): mAP50=68.30, 比ReDet(66.86)+1.37
+- 结果(DOTA-v1.5, R-50): mAP50=57.83, 比ReDet(52.53)+5.30(最大提升)
+- 结果(DOTA-v2.0, R-50): mAP50=48.78, 比ReDet(46.48)+2.30
+- 结果(DIOR-R): mAP50=72.16, 比baseline(68.93)+3.23
+- 多数据集测试: DOTA-v1.0, DOTA-v1.5, DOTA-v2.0, DIOR-R (四数据集)
+- 关键创新:
+  - **RoI Token + CLIP Token双流输入**: RoI Token来自两阶段检测器的候选区域特征，CLIP Token来自多尺度图像分割→CLIP编码→语义token；两种token一起送入Transformer编码器交互
+  - **空间感知注意力**: 标准self-attention只算embedding点积，无法捕捉空间关系；本文在attention权重中注入几何关系编码(dx,dy,角度差,距离,IoU,面积比)6个空间特征，让注意力权重根据物体间距离/尺度/重叠度自适应调节；**本质是"给Transformer注意力加几何先验"，让相近/相关的物体互相增强**
+  - **密度&尺度自适应权重(β)**: β由局部密度ρ和目标尺度ε控制——密度高的区域β更小(减少重叠RoI干扰)，尺度小的目标ε更小(更关注近距离关系)；**核心是解决"密集场景中注意力被无关RoI淹没"的问题**
+  - **CLIP背景语义**: 图像分patch→CLIP image encoder→用预定义文本描述(如"water","road","building")查询→生成语义CLIP Token；多尺度层级融合+自监督loss防止表征坍缩；**本质是"用CLIP的零样本语义给背景区域打标签"，弥补遥感数据集缺乏背景标注的问题**
+- 消融(DOTA-v1.5): +RoI Token交互+2.7→+CLIP Token+2.5→+自适应权重+1.1→+自监督loss+0.5，总计+5.3 mAP50
+- 空间关系消融: 仅(dx,dy)→70.79, +角度差+距离→71.03, +IoU→71.46, +面积比→72.16(全用最优)
+- 代码: 未开源
+- 笔记: **核心洞察是"航空图像近似正射→空间关系≈物理关系→上下文比自然图像更可靠"**，这为关系建模提供了理论基础；CLIP引入背景语义是亮点，解决了遥感数据集缺乏背景标注的痛点；空间感知注意力的6维几何编码设计合理；**局限：错误传播问题——一个物体的误检会通过关系传播到邻近物体(如误检ship→附近也被判为ship)；仅验证旋转框检测(DOTA)，未在水平框(VisDrone)上验证；CLIP推理增加额外开销；0引用说明影响力待观察**
+
+#### Synthetic Data Training (2024.05)
+- 论文: [arXiv:2405.19822](https://arxiv.org/abs/2405.19822) (Defense+Commercial Sensing, TNO荷兰应用科学研究组织, Frank A. Ruis等)
+- 核心: 合成数据训练目标检测器的基线方法论——利用Transformer的shape bias+强数据增强弥合sim-to-real gap
+- baseline: Faster R-CNN (ResNeXt-101 / CSP-Darknet53)
+- 训练: 合成数据训练→真实数据评估; 数据增强: MixUp+Mosaic+LSJ+RandAugment(brightness/contrast/pixelation/jpeg compression/gaussian blur)
+- 结果(DGTA-VisDrone合成→真实): Swin-S+Faster R-CNN(66.1M) mAP50=16.2(高增强)/7.8(低增强)；DINO+Swin-L(218M) mAP50=26.1；对比ResNeXt-101(2.4)/YOLOv5-X(10.2)
+- 结果(RarePlanes合成→真实): Swin-T mAP=40.8 vs ResNet-50 mAP=35.9(+4.9)
+- 结果(自建车辆数据集合成→真实): Swin-S mAP@50=94.8/mAP=80.1 vs ResNeXt-101 mAP@50=87.5/mAP=66.0
+- 多数据集测试: DGTA-VisDrone, RarePlanes, 自建车辆数据集 (三数据集)
+- 关键创新:
+  - **Transformer shape bias**: CNN≈高通滤波器(重纹理)，Transformer≈低通滤波器(重形状)；合成数据中形状保真度高但纹理不真实→Transformer天然适合合成数据训练→shape bias让模型忽略纹理差异、关注几何一致性
+  - **强数据增强**: MixUp+Mosaic+LSJ防止过拟合合成数据分布；**本质是"用增强做隐式域随机化"，让模型不依赖特定纹理模式**
+  - **不依赖域适应**: 传统方法用domain adaptation(如AdaBN/UDA)弥合sim-to-real gap，本文仅靠架构选择(shape bias)+训练技巧(增强)即超越
+  - **合成数据质量分析**: DGTA-VisDrone存在问题(完全被遮挡的物体仍有标注→射线检测忽略遮挡)；标签质量是合成数据的常见问题
+- 代码: 未开源
+- 笔记: **核心洞察简洁有力——合成数据"形状对、纹理错"→Transformer天然对形状敏感→选对backbone比设计域适应算法更有效**；这不是算法创新而是方法论贡献("先搞对baseline再谈创新")；VisDrone上26.1 mAP50虽然大幅超过baseline但仍远低于真实数据训练的结果，说明sim-to-real gap仍是硬伤；**局限：纯合成训练性能天花板低；RarePlanes上shape bias增益有限(飞机形状都相似，细粒度靠尺寸区分→shape bias帮不上忙)；DINO+Swin-L 218M参数量大，不适合部署；未在真实数据finetune场景下验证**
+
+#### B2BDet (2024.01)
+- 论文: [arXiv:2401.14661](https://arxiv.org/abs/2401.14661) (APSIPA ASC 2025, 东京工业大学, Ragib Amin Nihal等)
+- 核心: 超分辨率预处理+增强YOLOv5的航空小目标检测——SRGAN先恢复细节再检测
+- baseline: YOLOv5
+- 训练: SRGAN在航空数据集上从头训练(卫星+无人机+航拍)，SR-YOLOv5用强正则化+compound scaling+定制anchor+航空场景数据增强
+- 结果(VisDrone-2023 test): mAP50=52.5%, 27.7M参数, 109.5G FLOPs；比SCA-YOLO(47.4%)高+5.1；各类：PED=55.3/Car=87.8/Truck=64.1/Bus=73.0
+- 结果(NWPU-VHR10): mAP=90.5%(airplane 99.5%, vehicle 96.9%)
+- 结果(SeaDroneSee): mAP=76%(boat 96.3%, jetski 93.4%)
+- 结果(VEDAI): mAP=77.5%(car 89.3%)
+- 多数据集测试: VisDrone-2023, NWPU-VHR10, SeaDroneSee, VEDAI (四数据集)
+- 关键创新:
+  - **两阶段流水线**: Stage1 SRGAN超分辨率(2×上采样)→Stage2 SR-YOLOv5检测；**本质是"先修图再检测"，用SR恢复小目标的像素信息而非靠检测器硬检测**
+  - **航空定制SRGAN**: 在航空图像集上从头训练(非通用SR模型微调)，学习航空场景特有的纹理和结构映射；用对抗loss+感知loss生成更真实的HR图像
+  - **SR-YOLOv5改进**: ①Backbone: C3STR模块(Swin Transformer编码器替代部分C3)→捕获全局上下文；②Neck: FPN多尺度聚合；③Head: SPP+BottleneckCSP扩展感受野和深度；④Focus层降计算量+增强小目标检测
+  - **轻量化**: 仅270层/27.7M参数(vs TPH-YOLOv5 470层/60M, YOLOv5-X 87.7M)
+- 消融(VisDrone): baseline YOLOv5=47.0→+SR预处理+2.6→+架构改进(EAM+CLFPN)+2.9→总计+5.5 mAP50=52.5
+- 代码: 未开源
+- 笔记: **思路简单直接——小目标看不清→先放大看清再检测**，SR预处理的+2.6 mAP证明超分辨率对小目标确实有帮助；但两阶段推理(SR+检测)延迟翻倍，未报告端到端FPS，实际部署存疑；27.7M参数很轻量但109.5G FLOPs不算低；VisDrone mAP50=52.5%对比的是较老方法(SCA-YOLO 47.4%)，未与CEASC/QueryDet等同期方法对比；**局限：两阶段推理速度是硬伤(SR一步额外开销)；SR可能引入伪影导致误检；消融不够细(未单独消融C3STR/SPP/CLFPN)；与单阶段端到端SR+检测方法未对比**
 
 ---
 

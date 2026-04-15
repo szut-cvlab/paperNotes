@@ -23,7 +23,7 @@ function parseReadingsSidebar() {
     const yearMatch = line.match(/^##\s+(\d{4})/)
     if (yearMatch) {
       if (currentYear && currentItems.length) {
-        groups.push({ text: currentYear, items: currentItems })
+        groups.push({ text: currentYear, collapsed: false, items: currentItems })
       }
       currentYear = yearMatch[1]
       currentItems = []
@@ -41,7 +41,7 @@ function parseReadingsSidebar() {
   }
 
   if (currentYear && currentItems.length) {
-    groups.push({ text: currentYear, items: currentItems })
+    groups.push({ text: currentYear, collapsed: false, items: currentItems })
   }
 
   return groups
@@ -89,6 +89,7 @@ export default defineConfig({
       '/topics/': [
         {
           text: '专题调研',
+          collapsed: false,
           items: parseTopicsSidebar()
         }
       ]
@@ -99,7 +100,7 @@ export default defineConfig({
     },
 
     outline: {
-      level: [2, 3, 4, 5, 6],
+      level: [2, 6], // 表示从h2到h6都显示
       label: 'On this page'
     },
 

@@ -19,6 +19,7 @@
 
 - **12-13** [RemDet: Efficient Model Design for UAV Detection](/readings/2024-12-13-remdet) — `uav-detection` `efficient-design`
 - **09-25** [YOLO26 Jetson Benchmark](/readings/2025-09-25-yolo26-jetson-benchmark) — `benchmark`
+- **07-23** [ESOD: Efficient Small Object Detection on High-Resolution Images](/readings/2024-07-23-esod) — `small-object` `high-resolution` `sparse-detection`
 - **04-29** [CoDrone: UAV Oriented Detection Benchmark](/readings/2025-04-28-codrone) — `uav` `obb`
 
 ## 2023
