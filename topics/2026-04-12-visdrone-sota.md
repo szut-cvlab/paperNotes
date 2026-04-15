@@ -117,6 +117,20 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
   | YOLOv8n | 33.50% | 19.44% |
   | CA-YOLO | 38.40% | 23.06% |
 
+### SLPA+MSFEM (2026.02)
+- 论文: [arXiv:2602.23031](https://arxiv.org/abs/2602.23031) (预印本，尚未发表)
+- 核心: 空间拉普拉斯金字塔注意力 + 多尺度特征增强 + 可变形卷积对齐
+- baseline: Faster R-CNN + FPN (CZDet框架，ResNet-50)
+- 结果: VisDrone val AP=35.3%, AP_S=28.0% (输入1200×1999)
+- 关键创新:
+  - **SLPA (Spatial Laplacian Pyramid Attention)**: 插入ResNet-50每个stage后，MaxPool+AvgPool→不同膨胀率Conv(r={1,2,3})→1×1 Conv→Sigmoid→注意力加权，增强小目标局部特征
+  - **MSFEM (Multi-Scale Feature Enhancement Module)**: 插入FPN的C5层侧连接，将C5特征分4组用自适应膨胀卷积(r={1,2,3,4})+全局平均池化，增强顶层多尺度语义
+  - **DCN特征对齐**: 在FPN上下层融合时用可变形卷积对齐特征，解决上采样导致的特征不对齐
+- 复杂度: FLOPs 213→218G，参数 100.7→107.8M，FPS 12.0→11.4
+- 笔记: 即插即用模块，也可插入ClusDet/DMNet等；对CZDet AP提升+2.1%，AP_S提升+1.9%
+  - CZDet (Cascaded Zoom-in Detector, CVPR Workshops 2023): 复用检测器本身的检测结果生成zoom-in区域，不需要额外聚焦模块，兼具uniform cropping简单性和density cropping有效性
+  - 选CZDet作baseline原因：在"去哪里找"已解决的前提下，验证"特征增强"模块的增益
+
 ### SOD-YOLO (2025.07)
 - 论文: [arXiv:2507.12727](https://arxiv.org/abs/2507.12727)
 - 核心: ASF多尺度融合 + P2小目标检测层 + Soft-NMS
@@ -132,6 +146,17 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
 - 代码: https://github.com/galaxy-oss/FCM
 
 
+### AD-Det (2025.04)
+- 论文: [arXiv:2504.05601](https://arxiv.org/abs/2504.05601) (Remote Sensing 2025)
+- 核心: ASOE自适应小目标增强 + DCC动态类别平衡复制粘贴
+- baseline: GFL (Generalized Focal Loss)
+- 结果: input image size is 1333 × 800 for VisDrone and 1024 × 540 for UAVDT. VisDrone 基础模型resnet50 val AP=35.3%
+- 关键创新:
+  - **ASOE**: 利用高分辨率特征图识别和聚类小目标区域，放大后由细粒度检测器处理
+  - **DCC**: 对象级别重采样，动态将尾类粘贴到ASOE获得的聚类中心周围，为每个尾类维护动态记忆库
+  - **协同策略**: 同时解决尺度变化和类别不平衡问题
+- 代码: https://github.com/gentlezachary/AD-Det (待发布)
+
 ### RemDet (2024.12)
 - 论文: [arXiv:2412.10040](https://arxiv.org/abs/2412.10040) (AAAI 2025)
 - 核心: ChannelC2f + GatedFFN + CED，信息损失设计准则
@@ -145,24 +170,46 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
 - 代码: https://github.com/HZAI-ZJNU/RemDet
 - 笔记: [2024-12-13-remdet](../readings/2024-12-13-remdet)
 
-### AD-Det (2025)
-- 论文: [arXiv:2504.05601](https://arxiv.org/abs/2504.05601) (Remote Sensing 2025)
-- 核心: ASOE自适应小目标增强 + DCC动态类别平衡复制粘贴
-- baseline: GFL (Generalized Focal Loss)
-- 结果: input image size is 1333 × 800 for VisDrone and 1024 × 540 for UAVDT. VisDrone 基础模型resnet50 val AP=35.3%
+### CZDet (2023.03)
+- 论文: [arXiv:2303.08747](https://arxiv.org/abs/2303.08747) (CVPR Workshops 2023)
+- 核心: 复用检测器本身检测density crop，无需额外聚焦模块
+- baseline: Faster R-CNN + FPN (ResNet-50)
+- 结果: VisDrone val AP=33.22, AP_S=26.06 (with P2, R-50)；AP=33.02, AP_S=25.74 (without P2)
+- 代码: https://github.com/akhilpm/DroneDetectron2
 - 关键创新:
-  - **ASOE**: 利用高分辨率特征图识别和聚类小目标区域，放大后由细粒度检测器处理
-  - **DCC**: 对象级别重采样，动态将尾类粘贴到ASOE获得的聚类中心周围，为每个尾类维护动态记忆库
-  - **协同策略**: 同时解决尺度变化和类别不平衡问题
-- 代码: https://github.com/gentlezachary/AD-Det (待发布)
+  - **Density Crop Labeling**: 离线预处理，迭代合并GT框生成crop标签（N=2步，σ=20px，θ=0.1，π=0.3），将crop作为新类加入检测器
+  - **训练**: 原图缩放到检测器分辨率 + density crop放大后作为额外训练数据，检测器多学一个"density crop"类
+  - **推理（两阶段级联）**: Stage1检测base类+density crop类 → Stage2对高置信度crop放大后再次推理 → NMS融合两次结果
+  - **核心优势**: 无需额外可学习模块（区别于ClusDet的CPNet、DMNet的密度图），像uniform cropping一样简单，但有density cropping的效果
+  - **crop置信度过滤**: 直接用检测器对crop类的置信度筛选（最佳0.7），无需复杂后处理
+  - **P2实验**: P2是FPN最浅层特征图（最高分辨率），加P2能提升AP_S但开销巨大(FPS 26→18)；CZDet without P2(AP=33.02, AP_S=25.74)优于uniform crop with P2(AP=31.73, AP_S=25.13)且更快(11.64 vs 9.85 FPS)；without P2时baseline对目标检测更弱→检测器更依赖crop类覆盖密集区域→产生更多crop框→0.7阈值过滤后保留更多高质量crop→Stage2增益更大；说明density crop策略比加高分辨率特征图更高效
+- 笔记: 也适用于FCOS等anchor-free检测器；density crop策略比加P2特征图更高效
 
-### Focus-and-Detect (2022)
-- 论文: [arXiv:2203.12976](https://arxiv.org/abs/2203.12976)
-- 核心: 针对小目标检测的框架
+### Focus-and-Detect (2022.03)
+- 论文: [arXiv:2203.12976](https://arxiv.org/abs/2203.12976) (Signal Processing: Image Communication 2022)
+- 核心: GMM引导的两阶段框架 + IBS不完整框抑制
+- baseline: GFL (两阶段均基于GFL)
+- 结果: VisDrone val AP=42.06, AP50=66.12, AP_S=32.0 (当时SOTA)
+- 关键创新:
+  - **Focus阶段**: GFL + ResNet-50(DCN)，GMM生成聚类区域作为监督信号，预测focal regions
+  - **Detect阶段**: GFL + ResNeXt-101(DCN)，对focal regions裁剪放大后进行精细检测
+  - **GMM聚类**: N_f = log2(N_gt)+2，距离向量作为输入，EM拟合，具有尺度归一化效果
+  - **IBS (Incomplete Box Suppression)**: 解决重叠focal region产生的截断框问题，IoU阈值为0.05(区域)和0.5(框)
+  - **两阶段协作**: Focus生成目标密集区域→Detect放大细检→IBS+NMS后处理
 
-### Clustered Object Detection (2019)
-- 论文: [arXiv:1904.08008](https://arxiv.org/abs/1904.08008)
-- 核心: 密集小目标检测
+### ClusDet (2019.04)
+- 论文: [arXiv:1904.08008](https://arxiv.org/abs/1904.08008) (ICCV 2019)
+- 核心: 聚类区域检测 + 尺度估计 + 局部-全局融合的端到端框架
+- baseline: Faster R-CNN + FPN (Detectron实现)
+- 结果: VisDrone val AP=32.4, AP50=56.2 (ResNeXt-101 + 多尺度)
+- 关键创新:
+  - **CPNet (Cluster Proposal Sub-network)**: 类似RPN但预测目标聚类区域（而非单个目标），需要更大感受野，附着在backbone顶层
+  - **ICM (Iterative Cluster Merging)**: 迭代合并CPNet输出的密集杂乱聚类框（NMM + TopN），减少冗余chip
+  - **ScaleNet**: 以聚类为单位估计目标尺度偏移，输入=特征图+聚类框+全局初始检测结果，输出尺度回归偏移
+  - **PP (Partition and Padding)**: 根据ScaleNet估计的尺度，对chip分区或填充，确保目标尺度在合理范围[70,280]px
+  - **Local-Global Fusion**: 融合聚类chip检测结果和全图检测结果，NMS去重
+- 优势: 比EIP少处理~50%图像(#img 2716 vs 3288)，AP更高；隐式建模上下文先验
+
 
 ### 优化方向总结
 
