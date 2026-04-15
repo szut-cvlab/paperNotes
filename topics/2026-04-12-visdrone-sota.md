@@ -146,8 +146,15 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
 - 笔记: [2024-12-13-remdet](../readings/2024-12-13-remdet)
 
 ### AD-Det (2025)
-- 论文: [arXiv:2504.05601](https://arxiv.org/abs/2504.05601)
-- 核心: 小目标focus + 类别平衡tail class
+- 论文: [arXiv:2504.05601](https://arxiv.org/abs/2504.05601) (Remote Sensing 2025)
+- 核心: ASOE自适应小目标增强 + DCC动态类别平衡复制粘贴
+- baseline: GFL (Generalized Focal Loss)
+- 结果: input image size is 1333 × 800 for VisDrone and 1024 × 540 for UAVDT. VisDrone 基础模型resnet50 val AP=35.3%
+- 关键创新:
+  - **ASOE**: 利用高分辨率特征图识别和聚类小目标区域，放大后由细粒度检测器处理
+  - **DCC**: 对象级别重采样，动态将尾类粘贴到ASOE获得的聚类中心周围，为每个尾类维护动态记忆库
+  - **协同策略**: 同时解决尺度变化和类别不平衡问题
+- 代码: https://github.com/gentlezachary/AD-Det (待发布)
 
 ### Focus-and-Detect (2022)
 - 论文: [arXiv:2203.12976](https://arxiv.org/abs/2203.12976)
