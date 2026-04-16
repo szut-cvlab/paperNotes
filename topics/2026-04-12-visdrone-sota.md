@@ -436,7 +436,34 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
 
 ---
 
+
+
 ### 2023年及以前
+
+| ArXiv ID | 标题 | 引用 | VisDrone 结果 |
+|----------|------|------|---------------|
+| [OGMN: Occlusion-guided Multi-task Network](https://arxiv.org/abs/2304.11805) | arXiv | 44 | - |
+| [2303.08747](https://arxiv.org/abs/2303.08747) | **CZDet**: Density Crop无需额外模块 | - | AP=33.22 |
+| [2203.12976](https://arxiv.org/abs/2203.12976) | **Focus-and-Detect**: GMM两阶段+IBS | - | AP=42.06 |
+| [SyNet: Ensemble Network for UAV Images](https://arxiv.org/abs/2012.12991) | arXiv | 48 | - |
+| [AMRNet: Chips Augmentation](https://arxiv.org/abs/2009.07168) | arXiv | 53 | - |
+| [1904.08008](https://arxiv.org/abs/1904.08008) | **ClusDet**: 聚类区域+尺度估计+局部全局融合 | 350+ | AP=32.4 |
+
+#### OGMN (2023.04)
+- 论文: [arXiv:2304.11805](https://arxiv.org/abs/2304.11805) → 发表于 **ISPRS J. Photogrammetry and Remote Sensing** (SCI Q1, IF~12), Xuexue Li等(中科院空天院)
+- 核心: 针对UAV图像中**遮挡**问题提出遮挡引导的多任务检测框架；发现UAV遮挡有两大特殊性：**特征混淆**(occluded物体特征混入被遮挡物体) + **局部聚集**(遮挡物在图像中密集聚集)
+- baseline: Cascade R-CNN (ResNet-50-FPN)
+- 三个核心模块:
+  - **OEM (Occlusion Estimation Module)**: 遮挡定位模块——用遮挡估计解码器生成遮挡热力图，显式定位遮挡区域位置；遮挡标签由GT框重叠关系自动生成(无需额外标注)，配合遮挡感知损失函数训练
+  - **ODH (Occlusion Decoupled Head)**: 遮挡解耦检测头——将遮挡定位结果与检测特征交互，在分类/回归分支中解耦遮挡信号，解决特征混淆；同时对遮挡样本加权，挖掘遮挡hard samples
+  - **TPP (Two-Phase Progressive Refinement)**: 两阶段渐进式精炼——第一阶段对原图粗检测，根据OEM的遮挡定位结果用k-means聚类裁剪遮挡密集子区域，第二阶段对子图精检测，最后NMS合并；**本质是"遮挡引导的自适应切片推理"，比均匀切片更高效——只裁剪有遮挡的区域**
+- 多数据集测试:
+  - **VisDrone-DET val**: AP=35.0%, 比baseline(Cascade R-CNN)提升5.3%; AP₅₀=55.7%, AP₇₅=35.8%; 遮挡实例AR_occ显著提升
+  - **UAVDT**: AP=24.2%, 优于GLSAN(19.0%)和FiFoNet(21.3%); 推理速度0.61s/图(同类方法水平)
+  - **消融实验**(VisDrone): OEM单独+3.6% AP, OEM+ODH+4.8% AP, OEM+ODH+TPP+5.6% AP
+- 参数开销: 参数仅增加3.2%(137.4M→141.8M), FLOPs 121.9G→147.9G
+- 笔记: **这是一篇方法创新型工作**——首次将遮挡定位作为显式辅助任务引入UAV检测，OEM遮挡热力图生成(免额外标注)和ODH遮挡解耦设计有启发性；TPP的"遮挡引导切片"比SAHI均匀切片更有针对性；**局限：TPP两阶段推理增加延迟(0.61s/图，无法实时)；OEM遮挡标签依赖GT框重叠，对无标注场景不可迁移；仅基于Cascade R-CNN验证，未在YOLO/DETR等主流检测器上验证泛化性；VisDrone val上35.0% AP与当前SOTA仍有差距(>40%的方法已很多)**
+
 
 #### CZDet (2023.03)
 - 论文: [arXiv:2303.08747](https://arxiv.org/abs/2303.08747) (CVPR Workshops 2023)
@@ -465,6 +492,36 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
   - **IBS (Incomplete Box Suppression)**: 解决重叠focal region产生的截断框问题，IoU阈值为0.05(区域)和0.5(框)
   - **两阶段协作**: Focus生成目标密集区域→Detect放大细检→IBS+NMS后处理
 
+#### SyNet (2020.12)
+- 论文: [arXiv:2012.12991](https://arxiv.org/abs/2012.12991) → 发表于 **ICPR 2020** (25th Int. Conf. Pattern Recognition), Berat Mert Albaba & Sedat Ozer (Bilkent University, Turkey)
+- 代码: https://github.com/mertalbaba/SyNet
+- 核心: 融合多阶段检测器(Cascade R-CNN)和单阶段检测器(CenterNet)的**集成网络**，互补两者优劣
+- 动机: Cascade R-CNN精度高但漏检多(高FN), CenterNet召回高但框质量差；集成可同时降低漏检+提高框质量
+- 方法:
+  - **双检测器**: Cascade R-CNN (ResNet-101) + CenterNet (DLA-34)，分别独立训练
+  - **Weighted Box Fusion (WBF)**: 加权边界框融合——对两个检测器的预测结果按置信度加权合并，而非简单NMS取最优；**WBF相比NMS的优势：不会丢弃低置信度但正确的框，而是通过加权修正位置**
+  - **图像增强**: 从训练集中裁剪目标实例，粘贴到训练图像随机位置(每张图额外粘贴10-30个对象)，缓解类别不平衡；**⚠论文未做消融，增强的独立贡献量未知**
+- 多数据集测试:
+  - **VisDrone test-dev**: mAP_C=25.1%, mAP₅₀=48.4%, mAP₇₅=26.2% (vs Cascade R-CNN 24.7/43.7/24.3, vs CenterNet 14.3/26.6/13.1)
+  - **MS-COCO val2017**: mAP_C=47.2%, mAP₅₀=66.4%, mAP₇₅=52.1% (vs 单独Cascade R-CNN 42.7/61.6/46.6)
+  - VisDrone各类别: Car最高(83.2%), Bicycle/Awning最低(23.8/24.2)；SyNet在所有10个类别上均优于两个子检测器
+- 笔记: **这是一篇工程集成型工作**——核心贡献是"多阶段+单阶段检测器集成+WBF融合"，方法简单有效；WBF比NMS更适合集成场景(保留而非丢弃框)；图像增强策略(实例粘贴)也是实用技巧；**局限：推理需两个完整检测器，显存占用远大于单个模型；速度与Cascade R-CNN相当(非实时)；VisDrone test 25.1% mAP_C偏低(同期SOTA已>30%)；未做消融实验验证WBF vs NMS的定量差异；CenterNet单独表现很差(14.3%)，集成主要靠Cascade R-CNN撑着，CenterNet的贡献存疑**
+
+#### AMRNet (2020.09)
+- 论文: [arXiv:2009.07168](https://arxiv.org/abs/2009.07168) (未正式发表，仅arXiv预印本), Zhiwei Wei等
+- 核心: 针对航拍图像切片(chips)训练中的三大问题，提出三个**数据增强模块**，不增加推理开销
+- baseline: RetinaNet (ResNet-50), 均匀切6片(VisDrone)/4片(UAVDT), 输入800×1500
+- 三个增强模块:
+  - **Adaptive Cropping (AC, 自适应裁剪)**: 根据chip内目标平均尺度动态调整chip大小——小目标chip继续切分(partition)，大目标chip向外扩展(padding)，使所有chip内目标尺度趋近统一；**本质是"训练时自适应切片"，解决inter-chip尺度差异问题**
+  - **Mosaic Augmentation (MA, 马赛克增强)**: **解决chip目标稀疏问题，训练效率更高**；**直觉理解**：切chip后约1/5的chip是"废片"(目标<3个)，MA把4张废片各裁出有目标的ROI拼成1张"好图"，让模型训练时每张图都能学到有效特征，不浪费时间看大片背景；消融：MA单独+1.8% AP
+  - **Mask Resampling (MR, 掩膜重采样)**: 用全景分割提取实例mask构建mask池，在道路区域粘贴少类样本；粘贴时考虑类别兼容性(如van附近贴truck/bus)、尺度匹配(线性缩放)、光照调整(HSV空间)；**解决类别不平衡(VisDrone中car是tricycle的30倍)**
+- 多数据集测试:
+  - **VisDrone val**: AP=32.1%(ResXt101), AP_s=23.2; +多尺度推理 AP=36.1%, AP_s=29.0；ResNet-50即达31.7%超之前SOTA(DMNet 29.4%)
+  - **UAVDT**: AP=18.2%(ResNet-50), 超ClusDet(13.7%)和DMNet(14.7%); Mosaic单独+1.6% AP(缓解背景相似)
+  - **消融实验**(VisDrone): AC单独+2.5%(29.5 vs 27.0), MA单独+1.8%, MR单独+1.5%; AC+MA=30.6%(主要增益), 三者组合+3.8%(30.8%); MR与MA增益重叠(都增加少类样本)
+- 关键发现: AC模块在多尺度推理下增益更显著(+1.7% vs 无AC的+0.6%)——因为AC让检测器聚焦特定尺度，多尺度推理补充其他尺度
+- 笔记: **这是一篇数据增强型工作**——三个模块各有针对性(尺度/稀疏/类别)，且可独立使用不增推理开销，实用性强；AC的"训练时自适应切片"与OGMN的TPP"遮挡引导切片"、SAHI的"均匀切片"形成对比(AMRNet和OGMN按目标/遮挡位置裁剪，SAHI均匀裁剪)；MA的稀疏chip拼接思路简洁有效；**局限：MR依赖全景分割(额外模型开销和误差传播)；类别兼容性规则为手工定义(不可泛化)；未与SAHI等切片推理方法对比；实验只验证RetinaNet一种检测器**
+
 #### ClusDet (2019.04)
 - 论文: [arXiv:1904.08008](https://arxiv.org/abs/1904.08008) (ICCV 2019)
 - 核心: 聚类区域检测 + 尺度估计 + 局部-全局融合的端到端框架
@@ -487,11 +544,40 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
 
 | 标题 | 来源/会议 | 引用 |
 |------|-----------|------|
-| [UAV-DETR: Efficient End-to-End Object Detection for Unmanned Aerial Vehicle Imagery](https://arxiv.org/abs/2501.01855) | arXiv | 52 |
 | [YOLO-Fast: a lightweight object detection model for edge devices](https://www.semanticscholar.org/paper/959af0e883ca7d324b46a9120b5689b48200774b) | Journal of Supercomputing | 15 |
-| [YOLO-RACE: reassembly and convolutional block attention for enhanced dense object detection](https://www.semanticscholar.org/paper/22dea8cc7367952f400b466fbf2edce082cdfa6c) | Pattern Analysis and Applications | 10 |
 | [FO-YOLO for small object detection in drone aerial imagery](https://www.semanticscholar.org/paper/f30211de7ae63f259b2b8cd2c209561dbeca82e4) | Journal of Supercomputing | 7 |
-| [Object detection of VisDrone by stronger feature extraction FasterRCNN](https://www.semanticscholar.org/paper/91171f37638ef0712d7b3573766a617b6c852f21) | J. Electronic Imaging | 7 |
+
+#### YOLO-Fast (2025.04)
+- 论文: [DOI:10.1007/s11227-025-07172-3](https://doi.org/10.1007/s11227-025-07172-3) (Journal of Supercomputing 2025, 南开大学, Zijing Song等)
+- 核心: FasterNet替换backbone+EMA注意力+稀疏训练+通道剪枝+知识蒸馏的轻量化YOLOv8
+- baseline: YOLOv8n
+- 训练: VisDrone数据集, 基于ultralytics框架
+- 结果(VisDrone): 比baseline mAP +1.03%；稀疏训练+通道剪枝后计算量减少35.5%；Atlas 200I开发板12ms/图
+- 关键创新:
+  - **FasterNet backbone**: 用Partial Conv(PConv)替换YOLOv8标准backbone——PConv只对输入通道的1/4做空间卷积(其余3/4保持不变)，再通过1×1 Conv做通道混合；**本质是"只卷部分通道+MLP混合"，减少冗余空间计算**；代码中提供两种方案：①完整FasterNet backbone替换(yolov8-fasternet.yaml) ②C2f_Faster模块替换C2f(yolov8-C2f-Faster-EMA.yaml)
+  - **EMA (Efficient Multi-Scale Attention)**: 分组(8组)→每组内1×1 Conv生成H/W方向权重→GroupNorm+3×3 Conv双分支交叉注意力→softmax加权融合；**本质是"轻量多尺度通道-空间联合注意力"，参数量远少于CBAM/SE**；嵌入在Faster_Block_EMA中：PConv空间混合→MLP→EMA注意力→残差
+  - **稀疏训练**: 基于LAMP(Layer-Adaptive Magnitude-based Pruning)给权重加L1正则化，使部分通道权重趋向0，为后续剪枝做准备
+  - **通道剪枝**: 稀疏训练后按阈值裁剪接近0的通道，减少参数量和计算量；**计算量减少35.5%**
+  - **知识蒸馏**: 剪枝后精度下降→用剪枝前的完整模型作为teacher，对剪枝后student做特征蒸馏恢复精度到剪枝前水平
+  - **Faster_Block_EMA结构**: shortcut→PConv(空间混合,只卷1/4通道)→Conv1×1升维→Conv1×1降维→EMA注意力→残差加
+- 代码: https://github.com/ZJ-Song-Lab/YOLO-Fast
+- 笔记: **这是一篇工程导向的轻量化工作，创新性有限但完整性好**——FasterNet/PConv来自CVPR2023，EMA来自ICASSP2023，稀疏训练+剪枝+蒸馏是标准压缩流水线，本文贡献在于组合+VisDrone验证；35.5%计算量削减+12ms/图在Atlas 200I上的结果有部署参考价值；**局限：mAP仅+1.03%提升很小，未报告具体mAP数值；EMA在Faster_Block内部的位置(PConv→MLP→EMA)是经验选择未消融；未与其他轻量化方法(YOLO-NAS, PicoDet等)在同等约束下对比速度-精度；VisDrone上mAP50未与同规模模型对比**
+
+#### FO-YOLO (2025.08)
+- 论文: [DOI:10.1007/s11227-025-07688-8](https://doi.org/10.1007/s11227-025-07688-8) (Journal of Supercomputing 2025, 安徽理工大学, Huaping Zhou等)
+- 核心: 特征优化YOLO——FAM特征增强+DDAFPN动态细节感知特征金字塔+OTA-E最优传输标签分配
+- baseline: YOLOv5 (基于ultralytics)
+- 训练: VisDrone-2019-DET, TinyPerson数据集; PyTorch框架
+- 结果(VisDrone val): mAP50=44.1%(FO-YOLOs), 比baseline YOLOv5s(+2.7%); FO-YOLOm mAP50=46.5%
+- 结果(TinyPerson val): AP50^t=66.8, AP50^s=67.2
+- 多数据集测试: VisDrone-2019, TinyPerson (两数据集)
+- 关键创新:
+  - **FAM (Feature Augment Module)**: 特征增强模块，平衡特征提取的丰富度与精细度；引用RFB Net(多尺度感受野)和DeepLab ASPP(空洞空间金字塔池化)，推测采用多分支空洞卷积捕获不同尺度上下文；**本质是"用多尺度空洞卷积丰富backbone输出特征的感受野"，让小目标获得更大上下文信息**
+  - **DDAFFPN (Dynamic Detail-Aware FPN)**: 动态细节感知特征金字塔网络——解决传统FPN细节信息利用不足的问题；引用BiFPN(加权特征融合)、NAS-FPN(自动搜索FPN结构)、AugFPN(增强多尺度学习)；推测采用可学习的动态权重融合+细节信息保留机制(如高分辨率分支旁路)；同时减少特征融合时的冗余信息；**本质是"让FPN融合权重可学习+保留高分辨率细节"，而非固定上采样+add**
+  - **OTA-E (Optimal Transport Assignment-EIoU)**: 将OTA(Optimal Transport, CVPR2021)的最优传输标签分配策略引入YOLO+用EIoU替代CIoU做回归loss；OTA把标签分配建模为最优传输问题(Sinkhorn迭代求解)，全局最优匹配而非局部贪心(NMS/TopK)；EIoU考虑宽高比+中心距离，对小目标回归更精确；**本质是"用全局最优匹配替代局部策略+更精确的回归loss"，让小目标获得更准确的正样本分配**
+- 代码: 未开源
+- 笔记: 三个模块分别改进backbone输出(FAM)、neck融合(DDAFPN)、head标签分配(OTA-E)，覆盖检测器全流程；但各模块均来自已有工作(FAM≈ASPP/RFB, DDAFPN≈BiFPN+AugFPN, OTA-E=OTA+EIoU)，创新性有限；VisDrone mAP50=44.1%与同期方法对比不算高(RemDet 52.0+, CEASC 46+)；**局限：闭源论文，具体实现细节(DDAFPN的"动态"具体指什么、FAM的分支数和空洞率等)无法确认；未报告FPS/参数量/FLOPs；消融实验中各模块贡献度不明；TinyPerson结果与SOTA差距较大；仅基于YOLOv5，未在更新框架(YOLOv8/v10)上验证**
+
 
 ### 2024 年
 
@@ -499,52 +585,110 @@ _收集在 VisDrone 数据集上表现最好的目标检测方法_
 |------|-----------|------|
 | [Enhancing UAV Aerial Image Analysis: Integrating Advanced SAHI Techniques With Real-Time Detection Models on the VisDrone Dataset](https://www.semanticscholar.org/paper/16b9bd7b67e19d274c1c93267bac679f741b01eb) | IEEE Access | 46 |
 
-### 2019-2023 年 (经典方法)
+#### RT-DETR-X + SAHI (2024.02)
+- 论文: [DOI:10.1109/ACCESS.2024.3363413](https://doi.org/10.1109/ACCESS.2024.3363413) (IEEE Access 2024, Muhammad Muzammul等)
+- 核心: 将RT-DETR-X端到端检测器与SAHI切片推理结合，用于VisDrone无人机小目标检测
+- baseline: RT-DETR-X (来自[arXiv:2304.08069](https://arxiv.org/abs/2304.08069), CVPR2024, 引用2997+)
+- 训练: VisDrone-DET数据集(10类), PyTorch框架; 使用原始分辨率图像训练+SAHI切片推理
+- 结果(VisDrone): RT-DETR-X AP=54.8%, FPS=74; 结合SAHI后小目标检测显著提升(论文未给出精确SAHI后数值，强调"significant progress")
+- 多数据集测试: 仅VisDrone-DET (单数据集)
+- 关键创新:
+  - **RT-DETR-X**: Real-Time DEtection TRansformer-X——首个在速度和精度上同时超越YOLO系列的端到端Transformer检测器；核心改进：①高效混合编码器(AIFI + CCFM)替代DETR原始编码器 ②IoU感知查询选择替代DETR的随机查询初始化 ③不确定度最小化策略优化查询分配；**本质是\"去掉NMS的端到端DETR + 高效编码器 + 查询选择\"，解决了DETR计算量大+NMS延迟两大痛点**
+  - **SAHI (Slicing Aided Hyper Inference)**: 来自[arXiv:2202.06934](https://arxiv.org/abs/2202.06934) (ICIP2022, 引用392+)——将高分辨率图像切成重叠切片，每个切片独立检测，再把结果合并(NMS去重)；**本质是\"图像级切片推理\"，让小目标在切片中占更大比例，变相提高小目标的有效分辨率**；推理时才切片，训练用原图
+  - **组合意义**: RT-DETR-X的NMS-free特性在SAHI切片推理中仍有一定优势——每个切片内部RT-DETR直接输出去重结果无需NMS，而YOLO每个切片内还需做一次NMS；但**切片边界处的重复框问题两种检测器都会遇到**，最终都需要全局NMS去重，RT-DETR省的只是切片内的NMS开销
+- 代码: SAHI开源 https://github.com/obss/sahi ; RT-DETR在PaddleDetection中
+- 笔记: **这是一篇工程组合型工作**——RT-DETR-X和SAHI都是已有工作，本文贡献在于"首次在VisDrone上验证RT-DETR+SAHI组合效果"；RT-DETR-X端到端特性与SAHI的NMS-free契合度是有价值的发现；**局限：论文本身创新性有限(组合已有方法+新数据集验证)；未给出SAHI前后的精确mAP对比表格；未报告SAHI切片大小/重叠率等超参设置；未与YOLOv8+SAHI等同条件对比速度(切片数×单帧推理≠原图推理速度)；引用中文献多为综述/UAV应用，检测方法论引用不足；仅VisDrone单数据集验证**
 
-| 标题 | 来源/会议 | 引用 |
-|------|-----------|------|
-| [OGMN: Occlusion-guided Multi-task Network](https://arxiv.org/abs/2304.11805) | arXiv | 44 |
-| [Focus-and-Detect: Small Object Detection Framework](https://arxiv.org/abs/2203.12976) | arXiv | 98 |
-| [SyNet: Ensemble Network for UAV Images](https://arxiv.org/abs/2012.12991) | arXiv | 48 |
-| [AMRNet: Chips Augmentation](https://arxiv.org/abs/2009.07168) | arXiv | 53 |
-| [Clustered Object Detection in Aerial Images](https://arxiv.org/abs/1904.08008) | arXiv | 334 |
 
 
----
-
-## 📊 VisDrone Challenge 官方论文
+## VisDrone Challenge 官方论文
 
 | ArXiv ID | 标题 | 年份 | 引用 |
 |----------|------|------|------|
 | [2001.06303](https://arxiv.org/abs/2001.06303) | Detection and Tracking Meet Drones Challenge (IEEE TPAMI) | 2020 | 824 |
-| [2104.12078](https://arxiv.org/abs/2104.12078) | VisDrone-DET2021 (ICCV Workshops) | 2021 | 228 |
-| [2006.11088](https://arxiv.org/abs/2006.11088) | VisDrone-DET2020 (ECCV Workshops) | 2020 | 18 |
-| [1912.07114](https://arxiv.org/abs/1912.07114) | VisDrone-DET2019 (ICCV Workshops) | 2019 | 856 |
-| [1809.04365](https://arxiv.org/abs/1809.04365) | VisDrone-DET2018 (ECCV Workshops) | 2018 | 108 |
+| [IEEE](https://ieeexplore.ieee.org/document/9607674) / [S2](https://www.semanticscholar.org/paper/4f8a7867d083280387c4f4cce778970d352eb29a) | VisDrone-DET2021 (ICCV Workshops) | 2021 | 260 |
+| [Springer](https://link.springer.com/chapter/10.1007/978-3-030-66823-5_42) / [S2](https://www.semanticscholar.org/paper/6dd5d01b62118a4c1716c1284963bebe19bb9e5f) | VisDrone-DET2020 (ECCV Workshops) | 2020 | 264 |
+| [IEEE](https://ieeexplore.ieee.org/document/9021986) / [PDF](http://publica.fraunhofer.de/bitstreams/5b7f6394-0c99-405e-8681-d2afda800fb0/download) / [S2](https://www.semanticscholar.org/paper/80edf721b4ab5f4f4e24db69131c360d3343eaed) | VisDrone-DET2019 (ICCV Workshops) | 2019 | 475 |
+| [Springer](https://link.springer.com/chapter/10.1007/978-3-030-11021-5_27) / [S2](https://www.semanticscholar.org/paper/291a0754ea1e073ef2706dcb4384e5deb034da96) | VisDrone-DET2018 (ECCV Workshops) | 2018 | 133 |
+
+#### VisDrone 系列论文总览
+- **主论文**: [2001.06303](https://arxiv.org/abs/2001.06303) → 发表于 **IEEE TPAMI 2021**, Pengfei Zhu, Longyin Wen, Dawei Du等(天津大学/Albany/Stony Brook等), 引用824次
+  - **VisDrone数据集** (2018年发布):
+    - 4个任务: DET(图像检测)/VID(视频检测)/SOT(单目标跟踪)/MOT(多目标跟踪)
+    - 规模: 10,209张静态图像 + 263个视频(179,264帧), 覆盖中国14个城市
+    - DET: 10类(pedestrian/person/car/van/bus/truck/motor/bicycle/awning-tricycle/tricycle), 6,471训练+548验证+1,580test-challenge+1,610test-dev
+    - 分辨率: 静态图最高2000×1500, 视频最高3840×2160
+    - 标注: 250万+边界框, 含遮挡比例/截断比例属性
+    - 类别极度不平衡: car实例数是awning-tricycle的40倍+
+    - 遮挡严重: val集中遮挡>40%的实例占10.9%, >20%占29.6%
+    - 评估指标: 与MS COCO一致(AP@[0.5:0.95], AP50, AP75, AR1/10/100/500)
+  - **三年Challenge结果(DET track)**:
+    - **2018(ECCV)**: 冠军HAL-Retina-Net AP=31.88(RetinaNet+SE+下采样上采样); 亚军DPNet AP=30.92(FPN+三backbone集成)
+    - **2019(ICCV)**: 冠军DPNet-ensemble AP=29.62(Cascade R-CNN+全局上下文+可变形卷积); 整体进步不大
+    - **2020(ECCV)**: 冠军DroneEye2020 AP=34.57(Cascade R-CNN+DetectoRS递归FPN+可变形卷积); 亚军TAUN AP=34.54(ATSS+mean teacher半监督); CDNet/CascadeAdapt AP≈34(切片+mosaic增强)
+    - **趋势**: Cascade R-CNN成为2020主流框架(7/10使用); 多尺度测试提升显著; 切片/增强策略开始流行
+    - **baseline**: 纯Cascade R-CNN AP仅16.09%, 说明工程技巧贡献巨大
+  - **关键发现**:
+    - 最佳AP(34.57%)仍<35%, person/bicycle等小目标AP<25%, 远未解决
+    - 主要挑战: 极小目标 + 类别不平衡 + 密集遮挡(传统NMS会误删重叠真阳性)
+    - 未来方向: ①群体标注+计数评估(替代逐框标注) ②粗分割替代边界框 ③检测+跟踪联合框架 ④效率优化(AutoNAS)
+  - 其他Track简要:
+    - **VID**: 2019冠军DBAI-Det AP=29.22(Cascade R-CNN+可变形卷积), 视频时序信息利用不足
+    - **SOT**: 2020冠军SMILEv2(DiMP+SiamMask+SORT集成), success=55.5; 长期跟踪仍困难
+    - **MOT**: 2020冠军COFE AP=61.88(粗类别训练+投票策略); ReID模型对跟踪至关重要
+
+#### VisDrone-DET2021 (ICCV Workshops 2021)
+- 论文: [IEEE Xplore](https://ieeexplore.ieee.org/document/9607674) / [S2](https://www.semanticscholar.org/paper/4f8a7867d083280387c4f4cce778970d352eb29a), 引用260; ⚠️无免费PDF，需IEEE付费
+- 内容: 2021年DET赛道报告
+
+#### VisDrone-DET2020 (ECCV Workshops 2020)
+- 论文: [Springer](https://link.springer.com/chapter/10.1007/978-3-030-66823-5_42) / [S2](https://www.semanticscholar.org/paper/6dd5d01b62118a4c1716c1284963bebe19bb9e5f) (ECCV LNCS), 引用264; ⚠️无免费PDF，需Springer付费
+- 内容: 2020年DET赛道详细报告, 冠军DroneEye2020(Cascade R-CNN + DetectoRS) AP=34.57
+
+#### VisDrone-DET2019 (ICCV Workshops 2019)
+- 论文: [IEEE Xplore](https://ieeexplore.ieee.org/document/9021986) / [免费PDF](http://publica.fraunhofer.de/bitstreams/5b7f6394-0c99-405e-8681-d2afda800fb0/download) / [S2](https://www.semanticscholar.org/paper/80edf721b4ab5f4f4e24db69131c360d3343eaed), Dawei Du等, 引用475; ✅唯一有免费PDF的Challenge report
+- 内容: 2019年DET赛道详细报告, 冠军DPNet-ensemble AP=29.62; 与2018相比进步有限
+
+#### VisDrone-DET2018 (ECCV Workshops 2018)
+- 论文: [Springer](https://link.springer.com/chapter/10.1007/978-3-030-11021-5_27) / [S2](https://www.semanticscholar.org/paper/291a0754ea1e073ef2706dcb4384e5deb034da96) (ECCV LNCS), Pengfei Zhu等, 引用133; ⚠️无免费PDF，需Springer付费
+- 内容: 首届VisDrone DET赛道报告, 冠军HAL-Retina-Net AP=31.88; 首次系统性评估无人机检测算法
+
+
+### VisDrone 小目标检测优化方向总结
+
+| 优化方向 | 核心思路 | 代表方法 | 关键效果 |
+|----------|----------|----------|----------|
+| **P2/高分辨率检测头** | 引入1/4分辨率检测层，保留浅层空间细节 | SOD-YOLO(+P2), FDM-YOLO(+P2去P5), FBRT-YOLO(MKP替代P5), FMC-DETR([D2,D4]替代[D3,D4,D5]) | P2单独+2.9~5.2 mAP；FMC-DETR检测头变更暴涨+5.4 AP |
+| **去深层检测头** | 去掉P5/S5等深层冗余，减少对小目标无用的语义 | FDM-YOLO(去P5), FBRT-YOLO(MKP替代P5), EFSI-DETR(去F5), FMC-DETR(去S5) | 去P5参数减少，AP不降或反升；EFSI-DETR去F5后AP+1.2参数-2.8M |
+| **切片/裁剪推理** | 将高分辨率图像切片后分别检测，提高小目标有效分辨率 | SAHI(均匀切片), CZDet(density crop), ClusDet(聚类裁剪), ESOD(自适应特征切片), OGMN/TPP(遮挡引导切片), ZoomDet(非均匀重采样) | CZDet AP=33.2; Focus-and-Detect AP=42.06; ESOD AP=36.0 |
+| **频域增强** | 在频域(FFT/小波)中分离高低频，针对性增强高频细节 | EFSI-DETR(空间模拟频谱), FMC-DETR(真小波+KAN), SO-DETR/DDF, UAV-DETR/MSFF-FE, MGDFIS/FTSSA | FMC-DETR AP=33.2; SO-DETR-R50 AP=31.5 |
+| **信息瓶颈/维度扩展** | 用信息瓶颈理论指导backbone设计，高维表示减少信息损失 | RemDet(ChannelC2f+GatedFFN+CED) | RemDet-M AP=27.3 vs YOLOv8-M 24.4(+2.9) |
+| **轻量化** | 部分卷积/重参数化/剪枝蒸馏，在保持精度下减参数 | FBRT-YOLO(-66%参数), FDM-YOLO(-38%参数), YOLO-Fast(-35.5%计算量) | FBRT-YOLO-X 22.8M参数AP=30.1; FDM-YOLO 0.69M参数mAP50=42.5% |
+| **类别平衡** | 解决VisDrone严重长尾分布(car是tricycle 40倍+) | AD-Det(DCC动态类别平衡), AMRNet/MR(掩膜重采样粘贴少类) | AD-Det AP=35.3; AMRNet MR单独+1.5% |
+| **遮挡处理** | 显式定位遮挡区域，解耦遮挡特征，遮挡引导切片 | OGMN(OEM遮挡估计+ODH解耦+TPP遮挡引导切片) | OGMN AP=35.0(+5.3 vs baseline) |
+| **密度图引导** | 用密度图引导注意力稀疏化/查询分配/NMS阈值 | Dome-DETR(DeFE+MWAS+PAQI) | Dome-DETR-L AP=39.0(+2.5) |
+| **查询选择优化** | 放大框让小目标IoU更敏感，优先选小目标anchor作query | SO-DETR(Expanded-IoU), Better Sampling(ST尺度对齐+SPR) | SO-DETR EV2查询选择+1.2 AP; Better Sampling AP=32.3 |
+| **NMS改进** | 软抑制/动态阈值保留密集场景真阳性 | SOD-YOLO(Soft-NMS +5.8 mAP零额外计算), Dome-DETR(密度自适应动态NMS) | Soft-NMS是VisDrone上性价比最高的改进之一 |
+| **超分辨率预处理** | 先用SR恢复小目标像素信息再检测 | B2BDet(SRGAN+YOLOv5), ZoomDet(非均匀重采样) | B2BDet SR预处理+2.6 mAP; ZoomDet AP_S+2.7 |
+| **集成/融合** | 多检测器互补+WBF加权融合 | SyNet(Cascade R-CNN+CenterNet+WBF) | VisDrone test mAP=25.1(偏低) |
+| **文本引导/开放词汇检测** | 利用VLM的文本-图像对齐能力，实现零样本/开放词汇检测 | Cross-View OVD(OWLv2+跨视角对比对齐), TG-YOLO(YOLO-World+C3k2文本引导) | Cross-View OVD zero-shot mAP=44.97; TG-YOLO mAP50=30.7(提升有限) |
+| **CLIP语义融合** | 用CLIP编码背景/区域语义，弥补遥感数据缺乏背景标注 | Context-Aware Aerial Detection(RoI Token+CLIP Token双流Transformer) | DOTA-v1.5 mAP50+5.3(仅在旋转框验证，未测VisDrone水平框) |
+
+#### 关键洞察
+
+1. **P2检测头 vs 切片推理**：两者都解决"小目标分辨率不够"的问题，P2在特征空间操作(计算量巨大但端到端)，切片在图像空间操作(简单有效但需NMS去重)；CZDet去掉P2反而更好说明density crop可替代P2
+2. **去深层(P5/S5)是一致性发现**：EFSI-DETR/FMC-DETR/FDM-YOLO/FBRT-YOLO都发现深层检测头对VisDrone小目标贡献有限甚至有害，去掉后参数减、AP不降
+3. **频域增强是2025年热点**：EFSI-DETR/FMC-DETR/SO-DETR/UAV-DETR/HEDS-DETR/MGDFIS都在做频域，但真FFT(EFSI-DETR不用)vs空间模拟(EFSI-DETR)vs小波(FMC-DETR)各有取舍
+4. **Soft-NMS性价比极高**：SOD-YOLO中零额外计算+5.8 mAP，说明NMS误删是VisDrone密集场景的重大损失来源
+5. **工程技巧贡献巨大**：Challenge中纯Cascade R-CNN仅16.09% AP，冠军34.57%——一倍以上的提升来自多尺度测试/切片/增强/模型集成
+6. **多模态/VLM是新兴但尚不成熟的方向**：TG-YOLO(文本引导)mAP50仅30.7提升微弱，Cross-View OVD zero-shot虽惊艳但用632M参数ViT-H/14 vs 轻量YOLO对比不公平，Context-Aware的CLIP语义融合仅在旋转框验证——VLM对UAV检测的价值在于泛化(零样本/跨域)而非精度，实用路线是VLM预训练做初始化+检测器微调
+7. **通用实用技巧**（从历年Challenge和方法总结）：
+   - **多尺度测试**：几乎所有方法都使用，稳定+2~4 AP
+   - **特征增强**：SE注意力、可变形卷积、HRNet backbone
+   - **数据增强**：Mosaic、SNIPER、实例粘贴(AMRNet)、遮挡增强(OGMN)
+   - **超分辨率/图像放大**：SR预处理(B2BDet)、非均匀重采样(ZoomDet)
+   - **WBF替代NMS**：集成场景中保留低置信度正确框(SyNet)
 
 ---
 
-
-### 优化方向总结
-
-| 优化方向 | 代表方法 | 效果 |
-|----------|----------|------|
-| P2 检测头 | SOD-YOLO, FDM-YOLO | 增强小目标特征提取 |
-| 跨尺度特征融合 | ASF, CS-FPN, CFAM | 多尺度目标兼顾 |
-| 轻量化 | FBRT-YOLO, FDM-YOLO | 参数量减少 38-74% |
-| 类别平衡 | AD-Det | 解决长尾类别 |
-
----
-
-## 🛠️ 通用技巧（从历年 Challenge 总结）
-
-1. **多尺度测试**（几乎所有方法都用）
-2. **特征增强**：SE 注意力、Deformable Conv、HRNet
-3. **超分辨率预处理**：针对小目标
-4. **数据增强**：Mosaic、SNIPER
-
----
-
-_Last updated: 2026-04-13_
-
----
+_Last updated: 2026-04-16_
