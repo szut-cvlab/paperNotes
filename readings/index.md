@@ -6,12 +6,14 @@
 
 ## 2026
 
+- **04-16** [SkyFind: UAV REC Benchmark](/readings/2026-04-16-skyfind) — `uav` `rec` `dataset`
 - **02-17** [YOLO26: A Comprehensive Architecture Overview](/readings/2026-02-17-yolo26-comprehensive-overview) — `yolo26` `architecture`
 - **02-03** [YOLOE-26: Open-Vocabulary Segmentation](/readings/2026-02-03-yoloe-26) — `open-vocabulary` `segmentation`
 - **01-19** [YOLO26: NMS-Free End-to-End Framework](/readings/2026-01-19-yolo26) — `yolo` `nms-free`
 
 ## 2025
 
+- **11-24** [RefDrone: REC Benchmark for Drone Scenes](/readings/2025-11-24-refdrone) — `rec` `uav` `benchmark`
 - **04-29** [CoDrone: UAV Oriented Detection Benchmark](/readings/2025-04-28-codrone) — `uav` `obb`
 - **11-15** [RF-DETR: Neural Architecture Search](/readings/2025-11-15-rf-detr) — `DETR` `NAS`
 
