@@ -7,6 +7,7 @@
 ## 2026
 
 - **04-12** [Seg2Change: Open-Vocabulary Change Detection](/readings/2026-04-12-seg2change) — `remote-sensing` `change-detection` `open-vocabulary`
+- **04-22** [CPL++: Weakly Supervised Visual Grounding](/readings/2026-04-22-cpl-plus-plus) — `visual-grounding` `weakly-supervised` `pseudo-label`
 - **04-22** [Falcon Perception](/readings/2026-04-22-falcon-perception) — `vlm` `open-vocabulary-segmentation` `early-fusion`
 - **04-18** [FAA: Fourier Angle Alignment](/readings/2026-04-18-faa-fourier-angle-alignment) — `oriented-detection` `remote-sensing` `fourier` `cvpr2026`
 - **04-16** [SkyFind: UAV REC Benchmark](/readings/2026-04-16-skyfind) — `uav` `rec` `dataset`
