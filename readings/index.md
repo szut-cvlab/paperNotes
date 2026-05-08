@@ -17,6 +17,7 @@
 
 ## 2025
 
+- **10-14** [Rex-Omni: Detect Anything via Next Point Prediction](/readings/2025-10-14-rex-omni) — `cvpr2026` `mllm` `object-detection`
 - **11-24** [RefDrone: REC Benchmark for Drone Scenes](/readings/2025-11-24-refdrone) — `rec` `uav` `benchmark`
 - **04-29** [CoDrone: UAV Oriented Detection Benchmark](/readings/2025-04-28-codrone) — `uav` `obb`
 - **11-15** [RF-DETR: Neural Architecture Search](/readings/2025-11-15-rf-detr) — `DETR` `NAS`
