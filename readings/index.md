@@ -23,6 +23,10 @@
 - **04-29** [CoDrone: UAV Oriented Detection Benchmark](/readings/2025-04-28-codrone) — `uav` `obb`
 - **11-15** [RF-DETR: Neural Architecture Search](/readings/2025-11-15-rf-detr) — `DETR` `NAS`
 
+## 2025
+
+- **10-17** [ReCon: Data Augmentation with Rectification and Alignment](/readings/2025-10-17-recon) — `neurips2025` `data-augmentation` `diffusion`
+
 ## 2024
 
 - **12-13** [RemDet: Efficient Model Design for UAV Detection](/readings/2024-12-13-remdet) — `uav-detection` `efficient-design`
