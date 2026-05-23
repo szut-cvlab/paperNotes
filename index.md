@@ -15,12 +15,17 @@ hero:
     - theme: alt
       text: 专题调研
       link: /topics/
+    - theme: alt
+      text: arXiv日报
+      link: /arxiv-daily/
 
 features:
   - title: 📚 论文阅读
     details: 涵盖 YOLO、DETR、遥感图像等方向的深度解读与分析
   - title: 🔍 专题调研
     details: UAV 数据集、VisDrone、DOTA 等专题的系统性对比总结
+  - title: 🧠 arXiv日报
+    details: 每日推送最新 cs.CV 论文，LLM 分析推荐度，飞书通知
   - title: 🎯 研究方向
     details: 实时目标检测 · 遥感图像理解 · 无人机视觉 · 开放词汇检测
 ---

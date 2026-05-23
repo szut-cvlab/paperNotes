@@ -81,7 +81,8 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '论文阅读', link: '/readings/' },
-      { text: '专题调研', link: '/topics/' }
+      { text: '专题调研', link: '/topics/' },
+      { text: 'arXiv日报', link: '/arxiv-daily/' }
     ],
 
     sidebar: {
@@ -91,6 +92,14 @@ export default defineConfig({
           text: '专题调研',
           collapsed: false,
           items: parseTopicsSidebar()
+        }
+      ],
+      '/arxiv-daily/': [
+        {
+          text: 'arXiv日报',
+          items: [
+            { text: '2026', link: '/arxiv-daily/2026' }
+          ]
         }
       ]
     },

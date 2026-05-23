@@ -6,6 +6,9 @@
 
 ## 2026
 
+- **03-19** [EdgeCrafter: Compact ViT Edge Dense Prediction](/readings/2026-03-19-edgecrafter) — `ViT` `edge` `distillation` `object-detection` `pose` `segmentation`
+- **11-23** [FGD: Focal/Gobal Distillation for Detectors](/readings/2021-11-23-FGD) — `knowledge-distillation` `cvpr2022`
+- **05-16** [CANSURF: ASV Surface Debris Detection](/readings/2026-05-16-cansurf) — `yolo` `object-detection` `marine-debris` `dataset`
 - **04-12** [Seg2Change: Open-Vocabulary Change Detection](/readings/2026-04-12-seg2change) — `remote-sensing` `change-detection` `open-vocabulary`
 - **04-22** [CPL++: Weakly Supervised Visual Grounding](/readings/2026-04-22-cpl-plus-plus) — `visual-grounding` `weakly-supervised` `pseudo-label`
 - **04-22** [Falcon Perception](/readings/2026-04-22-falcon-perception) — `vlm` `open-vocabulary-segmentation` `early-fusion`
