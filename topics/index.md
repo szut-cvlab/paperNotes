@@ -13,3 +13,5 @@
 - **2026-04-12** [VisDrone SOTA](/topics/2026-04-12-visdrone-sota) — 最新性能对比与方法演进
 
 - **2026-04-12** [DOTA 数据集](/topics/2026-04-12-dota-dataset) — 大规模航拍图像旋转检测基准
+
+- **2026-05-30** [无人机低空遥感开放集目标检测](/topics/2026-05-30-uav-openset-det) — RemoteCLIP→CastDet→LAE-DINO→DisDop 演进路线+通用 OVD 方法+未来方向
