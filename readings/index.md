@@ -8,6 +8,7 @@
 
 - **05-24** [TinyFormer: YOLO-DETR Hybrid Tiny Object Detection](/readings/2026-05-24-tinyformer) — `yolo` `detr` `tiny-object` `real-time`
 - **05-23** [DisDop: Domain Prior Distillation for OVAOD](/readings/2026-05-23-disdop) — `open-vocabulary` `aerial-detection` `distillation`
+- **01-31** [VLDet: Open-Vocabulary Detection via Visual-Language Alignment](/readings/2026-01-31-vldet) — `open-vocabulary` `CLIP` `feature-pyramid` `yolo-world`
 - **03-19** [EdgeCrafter: Compact ViT Edge Dense Prediction](/readings/2026-03-19-edgecrafter) — `ViT` `edge` `distillation` `object-detection` `pose` `segmentation`
 - **05-16** [CANSURF: ASV Surface Debris Detection](/readings/2026-05-16-cansurf) — `yolo` `object-detection` `marine-debris` `dataset`
 - **04-12** [Seg2Change: Open-Vocabulary Change Detection](/readings/2026-04-12-seg2change) — `remote-sensing` `change-detection` `open-vocabulary`
