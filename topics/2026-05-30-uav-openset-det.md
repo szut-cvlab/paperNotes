@@ -168,6 +168,32 @@ VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 
 以下方法非专为遥感设计，但核心思路可迁移到低空遥感开放集检测：
 
+#### 2.5.0 范式
+
+开放词汇检测（OVD）的核心问题是：**如何让检测器识别训练时未见过的新类别？** 根据已有论文，可归纳为三大范式：
+
+| 范式 | 核心思路 | 开放词汇来源 | 代表方法 | 速度 | 精度特点 |
+|------|---------|-------------|---------|------|---------|
+| **A. 视觉-语言对比匹配** | 文本编码器编码类别名 → 与视觉特征做对比匹配（点积相似度） → 分类 | CLIP/MobileCLIP 文本编码器（冻结或微调），类别名可任意扩展 | VLDet, YOLO-World, YOLOE | 快（YOLO-World 52 FPS） | 精度中等，擅长常见类别 |
+| **B. 视觉-语言深度融合** | 在检测器多个阶段（Encoder → Query Selection → Decoder）都做图文交互，端到端训练 | BERT 编码类别名（参与训练，语义更强但受 256 token 上限），需要大规模 grounding 数据预训练 | Grounding DINO, LAE | 慢（1-5 FPS） | 精度高，零样本强 |
+| **C. MLLM 生成式检测** | 将检测统一为语言模型的坐标预测任务，自回归/并行生成 `<box>x1,y1,x2,y2</box>` | MLLM 本身的语言理解能力，支持组合推理（属性+关系），不依赖固定类别词表 | Rex-Omni, LocateAnything, Falcon Perception | 中等（LocateAnything 12.7 BPS） | 密集场景强，但无置信度 → 无法算 mAP |
+
+**范式 A vs B 的关键区别**：
+- A 用 CLIP 文本编码器（冻结），文本特征可预计算/缓存，推理高效
+- B 用 BERT（端到端训练），文本语义更强但推理慢、受序列长度限制
+- YOLOE 的 RepRTA 是 A 的进化：用轻量辅助网络精炼 CLIP 文本嵌入，推理时重参数化为零开销，兼顾 A 的效率和 B 的语义质量
+
+**范式 C 的根本差异**：
+- A/B 输出"类别概率 + 框坐标"，天然有置信度 → 可算 mAP
+- C 输出"坐标 token 序列"，没有置信度 → 只能算 F1，无法构建 PR 曲线
+- C 的优势是语言理解深度（支持"左边那只红色的猫"这种组合查询），劣势是推理慢、小目标精度差
+
+**对低空遥感的范式选择建议**：
+- 实时部署 → 范式 A（YOLO-World / YOLOE，Prompt-then-Detect 零文本编码开销）
+- 精度优先 → 范式 B（Grounding DINO / LAE，深度融合语义更强）
+- 密集小目标 + 组合查询 → 范式 C（LocateAnything PBD 并行解码，密集场景速度优势大）
+- 域适配 → 在 A/B 基础上加蒸馏（DisDop 思路）
+
 #### 2.5.1 VLDet
 
 **核心**：VL-PUB（Visual-Language Pyramid Upscale Block）将 CLIP 的单尺度特征重构为多尺度特征金字塔 + SigRPN（sigmoid-based anchor-text 对比对齐 loss）。解决 CLIP 单尺度不适配检测多尺度需求的问题。| [阅读笔记](/readings/2026-01-31-vldet)
@@ -205,6 +231,12 @@ VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 **核心**：单一 early-fusion dense transformer，图像 patch 和文本 token 从第一层就共享同一 Transformer。Chain-of-Perception（coord→size→seg）coarse-to-fine 生成。0.6B 参数在 Dense 场景（≥600 实例）吊打大模型。
 
 **对低空遥感的启示**：密集场景处理能力强，早期融合可能比 encoder-decoder 分离架构更适合无人机密集小目标。| [阅读笔记](/readings/2026-04-22-falcon-perception)
+
+#### 2.5.7 LocateAnything
+
+**核心**：VLM 并行框解码（Parallel Box Decoding, PBD）——将 bbox 视为原子单元一步并行解码，块内双向注意力保持框内几何连贯性。三种推理模式（Fast 16.9 BPS / Slow 52.1 F1 / Hybrid 12.7 BPS）。138M 查询、785M 框的大规模训练数据。
+
+**对低空遥感的启示**：VisDrone 39.9 F1（+4.1 vs Rex-Omni），密集场景优势明显；Hybrid Mode 12.7 BPS 的速度适合近实时处理。但 3B 参数量 + H100 依赖限制了边缘部署。| [阅读笔记](/readings/2026-05-26-locateanything)
 
 ### 2.6 Seg2Change（开放词汇变化检测）
 
