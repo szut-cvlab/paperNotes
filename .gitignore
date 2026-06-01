@@ -5,7 +5,8 @@
 # Node modules
 node_modules
 
-# PDF 和临时文件
+# 代码 / PDF / 临时文件
+code/
 raw/
 txts/
 *.pdf

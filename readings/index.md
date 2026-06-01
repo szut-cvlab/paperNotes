@@ -29,11 +29,13 @@
 - **10-14** [Rex-Omni: Detect Anything via Next Point Prediction](/readings/2025-10-14-rex-omni) — `cvpr2026` `mllm` `object-detection`
 - **09-25** [DEIMv2: Real-Time Object Detection Meets DINOv3](/readings/2025-09-25-deimv2) — `dinov3` `deim` `real-time-detection` `transformer`
 - **04-29** [CoDrone: UAV Oriented Detection Benchmark](/readings/2025-04-28-codrone) — `uav` `obb`
+- **03-10** [YOLOE: Real-Time Seeing Anything](/readings/2025-03-10-yoloe) — `open-vocabulary` `YOLO` `visual-prompt` `prompt-free` `re-parameterization`
 
 ## 2024
 
 - **12-13** [RemDet: Efficient Model Design for UAV Detection](/readings/2024-12-13-remdet) — `uav-detection` `efficient-design`
 - **08-17** [LAE: Locate Anything on Earth for RS OVD](/readings/2024-08-17-lae) — `open-vocabulary` `remote-sensing` `DINO` `data-engine`
+- **01-30** [YOLO-World: Real-Time Open-Vocabulary Object Detection](/readings/2024-01-30-yoloworld) — `open-vocabulary` `YOLO` `real-time` `vision-language`
 - **09-25** [YOLO26 Jetson Benchmark](/readings/2025-09-25-yolo26-jetson-benchmark) — `benchmark`
 - **07-23** [ESOD: Efficient Small Object Detection on High-Resolution Images](/readings/2024-07-23-esod) — `small-object` `high-resolution` `sparse-detection`
 - **04-29** [CoDrone: UAV Oriented Detection Benchmark](/readings/2025-04-28-codrone) — `uav` `obb`
@@ -43,6 +45,7 @@
 - **11-20** [CastDet: CLIP-Activated OVAOD](/readings/2023-11-20-casdet) — `open-vocabulary` `aerial-detection` `student-teacher` `CLIP`
 - **06-19** [RemoteCLIP: VL Foundation Model for RS](/readings/2023-06-19-remoteclip) — `vision-language` `remote-sensing` `CLIP` `data-scaling`
 - **03-16** [Large Selective Kernel Network](/readings/2023-03-16-lsknet) — `remote-sensing` `backbone`
+- **03-09** [Grounding DINO: Marrying DINO with Grounded Pre-Training](/readings/2023-03-09-groundingdino) — `open-vocabulary` `grounding` `DINO` `vision-language`
 
 ## 2021
 
