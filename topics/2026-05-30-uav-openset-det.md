@@ -23,6 +23,8 @@
 
 ### 2.1 演进路线
 
+**遥感 OVD 主线**（域适配，从浅到深利用 VL 先验）：
+
 ```
 RemoteCLIP（2023，基础模型）
   └→ CastDet（2023，首个航空 OVD，半监督+伪标签）
@@ -30,22 +32,41 @@ RemoteCLIP（2023，基础模型）
           └→ DisDop（2026，域先验蒸馏，SOTA）
 ```
 
-同时，通用 OVD 方向也在快速发展：VLDet / YOLOE-26 / Rex-Omni / Falcon Perception，这些方法虽非专为遥感设计，但技术思路可迁移。
+**通用 OVD 三大范式**（可迁移技术，详见 §2.5.0 范式总结）：
+
+```
+A. 视觉-语言对比匹配（CLIP 冻结，推理快）
+   VLDet（2026，CLIP 特征金字塔适配）
+     └→ YOLO-World（2024，RepVL-PAN + Prompt-then-Detect，52 FPS）
+         └→ YOLOE（2025，统一三提示 + 重参数化）
+             └→ YOLOE-26（2026，NMS-Free + 内置 4585 词表）
+
+B. 视觉-语言深度融合（BERT 端到端，精度高）
+   GLIP（2022，区域级对比预训练）
+     └→ Grounding DINO（2023，三阶段深度融合 + Grounded Pre-Training）
+         └→ LAE-DINO（2024，DVC + VisGT 遥感适配）
+
+C. MLLM 生成式检测（坐标预测，语言理解强）
+   Pix2Seq / OFA（早期：坐标序列化生成）
+     └→ Rex-Omni（2025，量化坐标 + SFT+GRPO）
+         └→ LocateAnything（2026，PBD 并行框解码，12.7 BPS）
+     └→ Falcon Perception（2026，Early-Fusion + Chain-of-Perception）
+```
 
 ### 2.2 各工作对比
 
-|| 维度 | RemoteCLIP | CastDet | LAE-DINO | DisDop |
-||------|-----------|---------|----------|--------|
-|| **年份** | 2023 | 2023 | 2024 | 2026 |
-|| **核心贡献** | 首个遥感 VL 基础模型 | 首个航空 OVD | 大规模数据+检测器 | 域先验蒸馏 |
-|| **方法范式** | CLIP 对比预训练 | 半监督+伪标签 | OVD 检测器+数据引擎 | 知识蒸馏 |
-|| **训练数据** | 卫星+无人机混合 165k | VisDrone+DIOR | LAE-1M（100万实例） | LAE-1M |
-|| **评估设定** | 分类/检索/计数 | GZSD（base+novel） | 开集（no fine-tune） | 开集（no fine-tune） |
-|| **评估数据集** | 零样本分类/检索 | VisDroneZSD | DIOR/DOTAv2.0/LAE-80C | DIOR/DOTAv2.0/LAE-80C |
-|| **对 CLIP 的利用** | 直接训练 | 做伪标签分类器（浅层） | 不用 CLIP，用 BERT | 蒸馏 RemoteCLIP+DINOv3（深层） |
-|| **DIOR AP50（开集）** | — | — | 85.5 | **87.2** |
-|| **DOTAv2.0 mAP** | — | — | 46.8 | **47.5** |
-|| **LAE-80C mAP** | — | — | 20.2 | **22.5** |
+| 维度 | RemoteCLIP | CastDet | LAE-DINO | DisDop |
+|------|-----------|---------|----------|--------|
+| **年份** | 2023 | 2023 | 2024 | 2026 |
+| **核心贡献** | 首个遥感 VL 基础模型 | 首个航空 OVD | 大规模数据+检测器 | 域先验蒸馏 |
+| **方法范式** | CLIP 对比预训练 | 半监督+伪标签 | OVD 检测器+数据引擎 | 知识蒸馏 |
+| **训练数据** | 卫星+无人机混合 165k | VisDrone+DIOR | LAE-1M（100万实例） | LAE-1M |
+| **评估设定** | 分类/检索/计数 | GZSD（base+novel） | 开集（no fine-tune） | 开集（no fine-tune） |
+| **评估数据集** | 零样本分类/检索 | VisDroneZSD | DIOR/DOTAv2.0/LAE-80C | DIOR/DOTAv2.0/LAE-80C |
+| **对 CLIP 的利用** | 直接训练 | 做伪标签分类器（浅层） | 不用 CLIP，用 BERT | 蒸馏 RemoteCLIP+DINOv3（深层） |
+| **DIOR AP50（开集）** | — | — | 85.5 | **87.2** |
+| **DOTAv2.0 mAP** | — | — | 46.8 | **47.5** |
+| **LAE-80C mAP** | — | — | 20.2 | **22.5** |
 
 ---
 
@@ -127,10 +148,10 @@ RemoteCLIP（2023，基础模型）
 - 约束损失：对比学习，让同一张图的 ŝ 和 s 靠近，不同图的远离
 
 **关键结果**：
-|| 方法 | DIOR AP50 | DOTAv2.0 mAP | LAE-80C mAP |
-||------|-----------|---------------|-------------|
-|| GroundingDINO + DVC | 83.6 | 46.0 | 17.7 |
-|| **LAE-DINO** | **85.5** | **46.8** | **20.2** |
+| 方法 | DIOR AP50 | DOTAv2.0 mAP | LAE-80C mAP |
+|------|-----------|---------------|-------------|
+| GroundingDINO + DVC | 83.6 | 46.0 | 17.7 |
+| **LAE-DINO** | **85.5** | **46.8** | **20.2** |
 
 VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 
@@ -154,13 +175,13 @@ VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 **训练**：两阶段——Stage I 在 LAE-1M（无标签）上蒸馏 backbone；Stage II 在标注 LAE-1M 上训练完整检测器
 
 **消融**：
-|| 配置 | DIOR AP50 | DOTAv2.0 mAP | LAE-80C mAP |
-||------|-----------|---------------|-------------|
-|| baseline（LAE-DINO） | 85.5 | 46.8 | 20.2 |
-|| + 视觉蒸馏 | 86.6 | 46.9 | 19.5 |
-|| + 文本蒸馏 | 86.1 | 47.1 | 21.7 |
-|| + 上下文蒸馏 | 86.8 | 47.0 | 20.9 |
-|| **全部** | **87.2** | **47.5** | **22.5** |
+| 配置 | DIOR AP50 | DOTAv2.0 mAP | LAE-80C mAP |
+|------|-----------|---------------|-------------|
+| baseline（LAE-DINO） | 85.5 | 46.8 | 20.2 |
+| + 视觉蒸馏 | 86.6 | 46.9 | 19.5 |
+| + 文本蒸馏 | 86.1 | 47.1 | 21.7 |
+| + 上下文蒸馏 | 86.8 | 47.0 | 20.9 |
+| **全部** | **87.2** | **47.5** | **22.5** |
 
 ---
 
@@ -305,18 +326,19 @@ VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 
 ## 参考文献
 
-|| 论文 | 年份 | 笔记链接 | 核心角色 |
-||------|------|---------|---------|
-|| Grounding DINO | 2023 | [笔记](/readings/2023-03-09-groundingdino) | LAE-DINO/DisDop 的检测器基座 |
-|| RemoteCLIP | 2023 | [笔记](/readings/2023-06-19-remoteclip) | 首个遥感 VL 基础模型 |
-|| CastDet | 2023 | [笔记](/readings/2023-11-20-casdet) | 首个航空 OVD |
-|| YOLO-World | 2024 | [笔记](/readings/2024-01-30-yoloworld) | 实时开放词汇检测（YOLO 路线） |
-|| LAE-DINO | 2024 | [笔记](/readings/2024-08-17-lae) | 大规模数据+检测器 |
-|| YOLOE | 2025 | [笔记](/readings/2025-03-10-yoloe) | 统一三提示范式实时开放词汇检测 |
-|| VLDet | 2026 | [笔记](/readings/2026-01-31-vldet) | CLIP 特征金字塔适配 |
-|| YOLOE-26 | 2026 | [笔记](/readings/2026-02-03-yoloe-26) | 统一 Embedding 开放词汇检测 |
-|| UAVBench | 2026 | [笔记](/readings/2026-03-15-uavbench) | 低空 VL benchmark |
-|| Seg2Change | 2026 | [笔记](/readings/2026-04-12-seg2change) | 开放词汇变化检测 |
-|| Falcon Perception | 2026 | [笔记](/readings/2026-04-22-falcon-perception) | Early-fusion dense transformer |
-|| Rex-Omni | 2026 | [笔记](/readings/2025-10-14-rex-omni) | MLLM-based detection |
-|| DisDop | 2026 | [笔记](/readings/2026-05-23-disdop) | 域先验蒸馏 SOTA |
+| 论文 | 年份 | 笔记链接 | 核心角色 |
+|------|------|---------|---------|
+| Grounding DINO | 2023 | [笔记](/readings/2023-03-09-groundingdino) | LAE-DINO/DisDop 的检测器基座 |
+| RemoteCLIP | 2023 | [笔记](/readings/2023-06-19-remoteclip) | 首个遥感 VL 基础模型 |
+| CastDet | 2023 | [笔记](/readings/2023-11-20-casdet) | 首个航空 OVD |
+| YOLO-World | 2024 | [笔记](/readings/2024-01-30-yoloworld) | 实时开放词汇检测（YOLO 路线） |
+| LAE-DINO | 2024 | [笔记](/readings/2024-08-17-lae) | 大规模数据+检测器 |
+| YOLOE | 2025 | [笔记](/readings/2025-03-10-yoloe) | 统一三提示范式实时开放词汇检测 |
+| VLDet | 2026 | [笔记](/readings/2026-01-31-vldet) | CLIP 特征金字塔适配 |
+| YOLOE-26 | 2026 | [笔记](/readings/2026-02-03-yoloe-26) | 统一 Embedding 开放词汇检测 |
+| UAVBench | 2026 | [笔记](/readings/2026-03-15-uavbench) | 低空 VL benchmark |
+| Seg2Change | 2026 | [笔记](/readings/2026-04-12-seg2change) | 开放词汇变化检测 |
+| Falcon Perception | 2026 | [笔记](/readings/2026-04-22-falcon-perception) | Early-fusion dense transformer |
+| Rex-Omni | 2026 | [笔记](/readings/2025-10-14-rex-omni) | MLLM-based detection |
+| DisDop | 2026 | [笔记](/readings/2026-05-23-disdop) | 域先验蒸馏 SOTA |
+| LocateAnything | 2026 | [笔记](/readings/2026-05-26-locateanything) | VLM 并行框解码 |
