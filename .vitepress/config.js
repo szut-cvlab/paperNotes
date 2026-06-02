@@ -120,6 +120,8 @@ export default defineConfig({
 
   ignoreDeadLinks: true,
 
+  srcExclude: ['code/**', 'raw/**'],
+
   markdown: {
     lineNumbers: true
   }
