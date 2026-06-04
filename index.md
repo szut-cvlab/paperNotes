@@ -4,7 +4,7 @@ layout: home
 hero:
   name: '科研笔记'
   text: 'Research Notes'
-  tagline: 系统化的论文阅读与专题调研知识库
+  tagline: 论文阅读与专题调研知识库：实时目标检测 · 遥感图像理解 · 无人机视觉 · 开放词汇检测
   image:
     src: https://vitepress.dev/vitepress-logo-large.webp
     alt: Research Notes Logo
@@ -18,6 +18,9 @@ hero:
     - theme: alt
       text: arXiv日报
       link: /arxiv-daily/
+    - theme: alt
+      text: 顶会整理
+      link: /top-conferences/
 
 features:
   - title: 📚 论文阅读
@@ -26,8 +29,8 @@ features:
     details: UAV 数据集、VisDrone、DOTA 等专题的系统性对比总结
   - title: 🧠 arXiv日报
     details: 每日推送最新 cs.CV 论文，LLM 分析推荐度，飞书通知
-  - title: 🎯 研究方向
-    details: 实时目标检测 · 遥感图像理解 · 无人机视觉 · 开放词汇检测
+  - title: 🎯 顶会整理
+    details: CVPR、ICCV、ECCV 等顶会论文的系统性整理与分析
 ---
 
 <style>

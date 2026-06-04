@@ -8,6 +8,8 @@
 
 - **05-24** [TinyFormer: YOLO-DETR Hybrid Tiny Object Detection](/readings/2026-05-24-tinyformer) — `yolo` `detr` `tiny-object` `real-time`
 - **05-26** [LocateAnything: Parallel Box Decoding for VLM Grounding](/readings/2026-05-26-locateanything) — `open-vocabulary` `visual-grounding` `parallel-decoding` `VLM`
+- **05-10** [AnyDepth: Any-Depth Object Detection](/readings/2026-05-10-anydepth) — `adaptive-inference` `RT-DETR` `YOLOv12` `cvpr2026`
+- **05-10** [HSGDet: Open World Detection in Remote Sensing](/readings/2026-05-10-hsgdet) — `open-world` `remote-sensing` `unknown-label` `cvpr2026`
 - **05-23** [DisDop: Domain Prior Distillation for OVAOD](/readings/2026-05-23-disdop) — `open-vocabulary` `aerial-detection` `distillation`
 - **05-16** [CANSURF: ASV Surface Debris Detection](/readings/2026-05-16-cansurf) — `yolo` `object-detection` `marine-debris` `dataset`
 - **04-22** [CPL++: Weakly Supervised Visual Grounding](/readings/2026-04-22-cpl-plus-plus) — `visual-grounding` `weakly-supervised` `pseudo-label`

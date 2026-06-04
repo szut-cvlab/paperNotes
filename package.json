@@ -8,10 +8,14 @@
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview"
   },
-  "keywords": ["research", "papers", "notes"],
+  "keywords": [
+    "research",
+    "papers",
+    "notes"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "vitepress": "^1.5.0"
+    "vitepress": "^1.6.4"
   }
 }
