@@ -10,3 +10,4 @@
 - [VisDrone SOTA](/topics/2026-04-12-visdrone-sota) — 最新性能对比与方法演进
 - [DOTA 数据集](/topics/2026-04-12-dota-dataset) — 大规模航拍图像旋转检测基准
 - [无人机低空遥感开放集目标检测](/topics/2026-05-30-uav-openset-det) — RemoteCLIP→CastDet→LAE-DINO→DisDop
+- [低空遥感视觉-语言基础模型](/topics/2026-06-04-uav-foundation-model) — 研究思路：CLIP 范式 image-text 对齐/ GLIP 范式 region-text 对齐

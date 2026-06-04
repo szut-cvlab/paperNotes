@@ -6,4 +6,4 @@
 
 ## 2026
 
-- [CVPR2026](cvpr-2026.md)
+- [CVPR2026](/top-conferences/cvpr-2026.md)
