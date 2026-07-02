@@ -6,6 +6,7 @@
 
 ## 2026
 
+- **07-02** [UAVGen: Visual Prototype Conditioned Focal Region Generation for UAV Detection](/readings/2026-07-02-uavgen) — `uav-detection` `diffusion` `small-object` `data-augmentation`
 - **05-24** [TinyFormer: YOLO-DETR Hybrid Tiny Object Detection](/readings/2026-05-24-tinyformer) — `yolo` `detr` `tiny-object` `real-time`
 - **05-26** [LocateAnything: Parallel Box Decoding for VLM Grounding](/readings/2026-05-26-locateanything) — `open-vocabulary` `visual-grounding` `parallel-decoding` `VLM`
 - **05-10** [AnyDepth: Any-Depth Object Detection](/readings/2026-05-10-anydepth) — `adaptive-inference` `RT-DETR` `YOLOv12` `cvpr2026`
