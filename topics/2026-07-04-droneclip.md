@@ -6,171 +6,86 @@
 
 ## 一、数据准备（Phase 1 — 最重要，预计 3-4 周）
 
-数据是 DroneCLIP 项目最核心的环节。UAVIT-1M 已整合 21 个数据集共 789k 图像，但 **UAVIT-1M 只提供 MLLM instruction 格式数据，不含检测框标注，也不含实际图像文件**。[实际调查结果](#附录实验证-uavit-1m-的数据内容)：HuggingFace 上只有 `UAVIT-1M.json`（639 MB，1.24M 条 instruction 数据），图像路径为相对引用（如 `ERA/train/...`），**实际图像和检测框标注仍需从原数据源下载**。因此本计划仍以从原数据源下载为基准，但可利用 UAVIT-1M 的 `image` 路径列表作为图像存在性交叉验证。
+数据是 DroneCLIP 项目最核心的环节。UAVBench/UAVIT-1M 论文 TABLE I 列出了 21 个源数据集的完整元数据（下载链接、图像数、分辨率、类别数、支持任务），但 **UAVIT-1M 只提供 MLLM instruction 格式数据，不含检测框标注，也不含实际图像文件**。[实际调查结果](#附录实验证-uavit-1m-的数据内容)：HuggingFace 上只有 `UAVIT-1M.json`（639 MB，1.24M 条 instruction 数据），图像路径为相对引用（如 `ERA/train/...`），**实际图像和检测框标注仍需从原数据源下载**。DroneCLIP 在此基础上补充 CARPK / VisDrone-VID / DTB70，共 24 个数据集 和 [UAVBench 笔记 TABLE I](/readings/2026-03-15-uavbench#21-数据构建)）。
 
-### 1.1 21 个数据集完整清单
+### 1.1 数据集清单
 
-#### 检测框数据集（OD，15 个）— 可直接 B2C
+数据集的完整逐条清单（含图像数、类别数、大小、下载链接、处理状态）见 [`data/reports/index.md`](/data/reports/index.md)。按 B2C 可行性分为以下几类：
 
-| 序号 | 数据集 | 图像数 | 框数 | 类别数 | 尺寸 | 优先级 | 下载来源 | 已下载？ |
-|------|--------|--------|------|--------|------|--------|----------|---------|
-| 1 | VisDrone-DET | 10,209 | ~2.5M | 10 | 1.5 GB | **P0** | [aiskyeye.com](https://aiskyeye.com/) | |
-| 2 | VisDrone-VID | ~190k 帧 | — | 10 | ~40 GB** | P1 | aiskyeye.com | |
-| 3 | UAVDT | ~80k | 835k | 3 | 13 GB | **P0** | [datasetninja.com](https://datasetninja.com/uavdt) | |
-| 4 | DroneVehicle (RGB) | ~18k (只取 RGB) | — | 5 | ~4 GB | **P0** | [GitHub](https://github.com/VisDrone/DroneVehicle) | |
-| 5 | AU-AIR | 32,627 | 132k | 8 | ~5 GB | **P0** | [auair dataset](https://bozcani.github.io/auairdataset) | |
-| 6 | CARPK | 1,448 | ~90k | 1 | ~0.5 GB | P1 | [github](https://github.com/IHS-VIS/Data-Driven-Parking) | |
-| 7 | UAVid (SS→M2B) | 42,670 | — | 8 | ~6 GB | P1 | [uavid dataset](https://uavid.nl) | |
-| 8 | AeroScapes (SS→M2B) | 3,269 | — | 12 | ~1 GB | P2 | [github](https://github.com/ishann/aeroscapes) | |
-| 9 | ERA | ~28k | — | 5 | ~3 GB | P1 | [era dataset](https://lcmou.github.io/ERA_Dataset/) | |
-| 10 | UAV123 (OT) | ~120k 帧 | — | — | ~15 GB* | P2 | [uav123](https://uav123.org) | |
-| 11 | DTB70 (OT) | ~70k 帧 | — | — | ~8 GB* | P2 | [dtb70](https://github.com/flyers/dtb70) | |
-| 12-21 | 剩余 10 个（含 MOT/SS/ER 等） | ~380k | — | 混 | ~70-120 GB* | P2-P3 | 参考 UAVIT-1M | |
+- **可直接 B2C（OD 检测框）**：VisDrone2019-DET ✅、UAVDT ✅、DroneVehicle ✅、AU-AIR ✅、HazyDet、RDDTS、UAVDT-M、VisDrone-VID（MOT，完整框）（8 个）
+- **M2B→B2C（语义分割 SS）**：UAVid、AeroScapes、FloodNet、UDD、VDD、Semantic Drone（6 个）
+- **仅评测（无检测框）**：ERA（零样本分类）、GeoText-1652（检索）、UDV DIT（检索）、CARPK（计数）、RefDrone（crop+指代表达做零样本分类）（5 个）
+- **已删除**：CapERA（视频 caption 非帧级）、MOD20（纯视频动作识别）、WebUAV-3M/UAV123/UAVDT-S（单目标跟踪不适合 B2C）
+- **暂不用于训练（跟踪数据，无检测框）**：WebUAV-3M、UAV123、UAVDT-S、VisDrone-VID（4 个）
 
-> *视频帧数据集（UAV123/DTB70 等）体积大但冗余高，后续可抽样使用。
-> **VisDrone-VID/MOT/SOT 体积大（~50-60 GB），可放 P1 仅用于扩展类别的多样性。
 
-#### 核心小数据集速览
+### 1.2 下载计划
 
-| 数据集 | 图像数 | 主要类别 | 标注类型 | 特点 |
-|--------|--------|---------|---------|------|
-| VisDrone-DET | 10,209 | 车/人/自行车等 10 类 | 检测框 | 最核心，多样性好 |
-| DroneVehicle | 17,990 | 车/卡车等 5 类 | 检测框 | 多模态（仅用 RGB） |
-| UAVDT | ~80k | car/truck/bus | 检测框 | 属性标注丰富 |
-| AU-AIR | 32,627 | 人/车等 8 类 | 检测框 | 与 VisDrone 互补 |
-| CARPK | 1,448 | car | 检测框 | 纯停车场俯拍 |
-| UAVid | 42,670 | 道路/建筑等 8 类 | 语义分割 | 场景多样性 |
-| ERA | ~28k | person/car 等 | 检测框 | 低空行人 |
-| AeroScapes | 3,269 | 建筑/车等 12 类 | 语义分割 | 补充场景 |
+各数据集的下载链接、大小、当前状态均在 [`data/reports/index.md`](/data/reports/index.md) 中列出。按以下优先级分批下载：
 
-### 1.2 数据集下载计划
+1. **OD 检测框（直接 B2C）**：VisDrone-DET、UAVDT、DroneVehicle、AU-AIR、HazyDet、RDDTS、UAVDT-M（MOT+OD）
+2. **MOT 多目标跟踪（有完整框，可 B2C，需视频帧抽样）**：VisDrone-VID
+3. **SS 语义分割（M2B→B2C）**：UAVid、AeroScapes、FloodNet、UDD、VDD、Semantic Drone
+4. **评测数据**：ERA（零样本分类）、GeoText-1652（检索）、UDV DIT（检索）、CARPK（计数）
+5. **补充/待调研**：CapERA（视频描述）、MOD20（动作识别）、RefDrone（指代表达）
 
-#### 渐进式下载：分 3 轮
-
-| 轮次 | 数据集 | 预计大小 | 累计大小 | 目标 |
-|------|--------|---------|---------|------|
-| **第 1 轮（立即）** | VisDrone-DET + UAVDT + DroneVehicle(RGB) + AU-AIR | ~25 GB | 25 GB | 跑通 B2C 流程，验证可行性 |
-| **第 2 轮（验证后）** | CARPK + UAVid + ERA + AeroScapes + VisDrone-VID (采样) | ~25 GB | 50 GB | 扩展类别和场景多样性 |
-| **第 3 轮（完整）** | 剩余 10+ 个数据集（含 OT/MOT/SS） | ~100 GB | 150 GB | 全量数据，最大化规模 |
-
-#### 下载检查清单
-
-- [ ] **VisDrone-DET**：从 aiskyeye.com 下载，选 HBB 格式（水平框，兼容 COCO）
-- [ ] **UAVDT**：从 datasetninja.com 下载，检查标注格式（MOT 格式 → 转 COCO）
-- [ ] **DroneVehicle-RGB**：从 GitHub 下载，只需 RGB 图像（忽略红外通道）
-- [ ] **AU-AIR**：从官网下载，检查格式兼容性
-- [ ] **第 1 轮完成** → 立即开始格式统一和 B2C 流程搭建
-- [ ] **第 2-3 轮**：按需扩展
-
-#### 磁盘准备
-
-- 工作盘至少 **500 GB** 可用空间（考虑解压 + 处理中间文件）
-- 最终清洗后数据约 **80-120 GB**
-- 建议使用 SSD 加速处理
 
 ### 1.3 数据转换 Pipeline（直接输出 B2C 图文对）
 
-**核心设计思路**：CLIP 训练只需要 (image, caption) 对，不需要 COCO JSON 作为中间格式。每个数据集脚本直接读原始标注 → B2C 模板 → 输出 JSONL。RemoteCLIP 也是直接对标注做 B2C，没有经过 COCO 格式中转。
+**核心设计思路**：CLIP 训练只需要 (image, caption) 对。每个数据集脚本直接读原始标注 → B2C 模板 → 输出 JSONL。
 
-```
-原始数据集（各种格式）          ─→  每个格式写一个脚本，直接输出图文对
-    │
-    ├─ VisDrone (.txt MOT)      ─→ convert_visdrone.py
-    ├─ UAVDT (.txt MOT)        ─→ convert_uavdt.py
-    ├─ DroneVehicle (.xml VOC)  ─→ convert_dronevehicle.py
-    ├─ AU-AIR (.xml VOC)       ─→ convert_auair.py
-    ├─ CARPK (.txt)            ─→ convert_carpk.py
-    ├─ UAVid (png masks)       ─→ convert_uavid.py  (M2B → B2C)
-    ├─ ERA (.json)             ─→ convert_era.py
-    └─ ...
-        │
-        ▼
-JSONL 格式（每行一条图文对）
-{"image": "/data/VisDrone/0001.jpg", "caption": "2 cars and 1 pedestrian"}
-{"image": "/data/UAVDT/0100.jpg", "caption": "5 cars"}
-...
-```
+**转换脚本清单**：
 
-**为什么不需要 COCO 格式**：
-- CLIP 训练输入是 (image, text) 对，不是检测框
-- 中间存一套 COCO JSON 徒增复杂度，毫无收益
-- 最终合并训练数据就是 `cat *.jsonl > merged_train.jsonl`
-
-#### 转换脚本计划
-
-| 脚本 | 输入格式 | 输出格式 | 处理数据集 |
-|------|---------|---------|-----------|
-| `convert_visdrone.py` | VisDrone TXT | JSONL | VisDrone-DET |
-| `convert_uavdt.py` | MOT TXT | JSONL | UAVDT |
-| `convert_dronevehicle.py` | VOC XML | JSONL | DroneVehicle |
-| `convert_auair.py` | VOC XML | JSONL | AU-AIR |
-| `convert_carpk.py` | CARPK TXT | JSONL | CARPK |
-| `convert_uavid.py` | 语义分割 PNG | JSONL | UAVid（M2B→B2C） |
-| `convert_era.py` | ERA JSON | JSONL | ERA |
-
-#### 转换检查清单
-
-- [ ] 编写 `convert_visdrone.py`，输入 VisDrone TXT，输出 JSONL
-- [ ] 编写 `convert_uavdt.py`，输入 MOT TXT，输出 JSONL
-- [ ] 编写 `convert_dronevehicle.py`，输入 VOC XML，输出 JSONL（只取 RGB）
-- [ ] 其余数据集后续逐步添加
-- [ ] 标注质量过滤：过滤面积 < 16px² 或宽/高 < 4px 的极小框
-- [ ] 统一类别名映射（见 1.3.1）
-- [ ] 最终 `cat *.jsonl > train.jsonl` 合并
-
-#### 1.3.1 类别名统一
-
-21 个数据集的类别名不同，需要建立统一的类别名映射表。参考 UAVBench 和 UAVIT-1M 的做法。
-
-**核心类别映射**（从各数据集到 DroneCLIP 统一类别名）：
-
-| DroneCLIP 类别 | VisDrone | UAVDT | DroneVehicle | AU-AIR | 说明 |
-|---------------|----------|-------|-------------|--------|------|
-| car | car | car | car | car | 最核心类别 |
-| truck | truck | truck | truck | truck | |
-| bus | bus | bus | — | — | |
-| van | van | — | van | van | |
-| pedestrian / person | pedestrian + person | — | — | person | 合并人 |
-| bicycle | bicycle | — | — | bicycle | |
-| motor | motor | — | — | motor | 摩托车/电动车 |
-| tricycle | tricycle | — | — | — | 三轮车 |
-| awning-tricycle | awning-tricycle | — | — | — | 带蓬三轮 |
-| — | — | — | — | — | 其他特殊类别可合并或保留 |
-
-> **策略**：对各数据集的类别名做"词根归一化"（复数→单数，general→specific），最终控制在 **15-20 个统一类别**。
+| 脚本 | 输入格式 | 处理数据集 |
+|------|---------|-----------|
+| `convert_visdrone.py` | VisDrone TXT | VisDrone-DET ✅ |
+| `convert_uavdt.py` | dataset-ninja JSON | UAVDT ✅ |
+| `convert_dronevehicle.py` | VOC XML | DroneVehicle ✅ |
+| `convert_auair.py` | VOC XML | AU-AIR ✅ |
+| `convert_carpk.py` | CARPK TXT | CARPK ✅（仅评测） |
+| `convert_hazydet.py` | 待定 | HazyDet ⬜ |
+| `convert_rddts.py` | 待定 | RDDTS ⬜ |
+| `convert_uavid.py` | 语义分割 PNG | UAVid（M2B→B2C）⬜ |
+| `convert_aeroscapes.py` | 语义分割 PNG | AeroScapes（M2B→B2C）⬜ |
+| `convert_floodnet.py` | 语义分割 PNG | FloodNet（M2B→B2C）⬜ |
+| `convert_udd.py` | 语义分割 PNG | UDD（M2B→B2C）⬜ |
+| `convert_vdd.py` | 语义分割 PNG | VDD（M2B→B2C）⬜ |
+| `convert_semantic_drone.py` | 语义分割 PNG | Semantic Drone（M2B→B2C）⬜ |
 
 ### 1.4 B2C（Box-to-Caption）Caption 生成
 
 这是 DroneCLIP 的数据核心——将检测框转为图文对。
 
-#### 1.4.1 Caption 模板设计
+#### 1.4.1 Caption 模板设计（**已采纳：计数 + 空间信息 + 每图多 caption**）
 
-参考 RemoteCLIP 的 B2C 策略，设计三类模板：
+**设计决策（2026-07-14 更新）**：对标 RemoteCLIP 时发现两点差距 —— (1) RemoteCLIP 的 B2C 明确编码**空间位置（中心/非中心）**信息；(2) RemoteCLIP 每图生成 **5 条** caption（增强多样性、与 MS-COCO 对齐）。我们 v1 模板只有单条精确计数、无空间信息。经讨论决定**方案 A 整图 caption 同时补齐这两点**：加空间信息 + 每图多 caption，并保留精确计数（不用 RemoteCLIP 的 ">10 用 many"）。
 
-**模板 1：简洁描述**（默认，统一模板，保证公平对比）
+**方案 A 每图多 caption（v2，建议 5 条，统一模板、无 LLM）**：
 
-```
-There are {N} objects in this UAV image: {list of categories}.
-```
+以整图检测框统计出的 {N} / {list} / {C}(中心数) / {N-C}(周边数) / {center_list} / {periph_list} 为基，生成 5 条：
+1. 整图（计数+空间）：`There are {N} objects in this UAV image: {list}. {C} in the center ({center_list}); the rest around the edges ({periph_list}).`
+2. 中心聚焦：`In the center of this UAV image there are {C} objects: {center_list}.`
+3. 周边聚焦：`Around the edges of this UAV image there are {N-C} objects: {periph_list}.`
+4. 类别聚焦（取数量最多类）：`This UAV image contains {top_count} {top_category} and other objects.`
+5. 变体（随机子集）：从 {list} 随机抽 1 类生成 `There are {k} {cat} in this UAV image.`
 
-**模板 2：带数量细节**
+> 5 条共享同一图像的精确计数与空间信息，只是视角/粒度不同；均不用 "many"，保留精确数字。
 
-```
-This UAV image shows {N} objects: {category1_count} {category1}, {category2_count} {category2}, ...
-```
+**空间信息编码规则（center / non-center，对标 RemoteCLIP 并具体化）**：
 
-**模板 3：带空间关系**（可选提升）
-
-```
-{category1} and {category2} are near each other. There is {category3} in the background.
-```
+- **中心区域定义**：以图像几何中心为中心、宽高各占全图 **1/3** 的矩形（即 3×3 网格的中心格），坐标可复现、不依赖任何超参。
+- **归类**：每个框按其**中心点**是否落在中心区域内 → `center` / `non-center(edges)`；与 caption 计数口径（框中心）一致。
+- **边界情况**：全部在中心 → 省略后半句改为 "..., all in the center."；全部在周边 → "..., all around the edges."；空图不产生 caption（同 v1）。
+- **类别列表**：`{list}` / `{center_list}` / `{periph_list}` 均按数量降序，>1 用复数（沿用 v1 `pluralize` 逻辑）。
 
 **关键设计决策**：
 
-- ✅ 用 **统一模板** 而非多样化模板 → 保证与 RemoteCLIP 方法一致，减少变量
-- ✅ 模板中类别名按数量降序排列 → "最常见的先说"，增强语义对齐信号
-- ❌ 不引入 LLM 生成多样化 caption → 增加复杂度，引入额外变量
-- ❌ 不引入 region-level 描述 → 那是工作二的事
+- ✅ **计数 + 空间**：保留精确计数（比 RemoteCLIP 的 ">10 用 many" 更细），并补齐 RemoteCLIP 有而我们缺的空间信息。
+- ✅ **每图多 caption（~5 条）**：与 RemoteCLIP 对齐增强多样性；模板本身统一、无 LLM，保证可比、减少变量。
+- ✅ 类别名按数量降序 → "最常见的先说"，增强语义对齐信号。
+- ✅ 中心/非中心为 **image-level 空间**（粗粒度），与 GLIP 式 **region-level（box→region-text）对齐是两回事**——后者属工作二，不在本模板范围。
+- ❌ 不引入 LLM 生成多样化 caption → 增加复杂度、引入额外变量。
+- 🔜 **待实现**：`b2c_generate.py` 需按 v2 生成**每图多 caption**（上述 5 条，含空间从句）；**已处理的 5 个数据集（VisDrone / UAVDT / DroneVehicle / AU-AIR / CARPK）需按新模板重跑方案 A**（方案 B 不受影响，见 1.4.2）。
 
 #### 1.4.2 切图策略（方案 B）的 Caption 生成
 
@@ -188,11 +103,12 @@ This UAV image shows {N} objects: {category1_count} {category1}, {category2_coun
 - 与 RemoteCLIP B2C 相同模板，但只计算 patch 内可见框
 - 只包含中心框（裁剪中心所在框）+ 落在 patch 内的相邻框
 - 所有框需重新计算是否在 patch 范围内
+- **不加空间信息**：方案 B 的 crop 已以目标框为中心裁出，"中心/非中心"在 224×224 patch 内退化（中心必然是目标框本身），故方案 B **保持纯计数模板**（v1）；空间信息只作用于方案 A 整图。因此 1.4.1 的 v2 模板变更只需重跑方案 A，方案 B 产物不受影响。
 
 #### 1.4.3 B2C 生成流程
 
 ```
-统一 COCO 标注文件
+convert 输出的每图检测框（boxes.jsonl）
     │
     ▼
 遍历每张图的检测框
@@ -211,160 +127,103 @@ This UAV image shows {N} objects: {category1_count} {category1}, {category2_coun
 
 **数据量估算**：
 
-| 方案 | 图文对数量 | 文件大小 |
-|------|-----------|---------|
-| 方案 A（整图 224） | 789k | ~2 MB JSON |
-| 方案 B（切图 224） | ~2-4M | ~10 MB JSON |
+| 方案 | 图文对数量（估算） | 口径说明 |
+|------|------------------|---------|
+| 原始图像 | ~789k | UAVIT-1M 汇总的 21 个数据集原始图像总数（背景规模，非图文对） |
+| 方案 A（整图 caption） | 与去重后图像数相当（当前 4/24 训练数据集已处理；CARPK 1448 张仅评测） | 每图 1 条图文对 |
+| 方案 B（切图 caption） | 远大于 A（当前 4/24：VisDrone / UAVDT / DroneVehicle / AU-AIR；CARPK 仅评测不参与训练） | 每个目标框裁 224×224 patch → 多条图文对 |
+
+> 注：789k 指**原始图像**规模；对外发布以**图文对**为口径（方案 A + 方案 B 均统计），详见各数据集报告。
 
 **B2C 脚本清单**：
 
 | 脚本 | 功能 |
 |------|------|
-| `b2c_generate.py` | 核心 B2C 生成器，输入 COCO JSON，输出图文对 JSON |
+| `b2c_generate.py` | 核心 B2C 生成器，输入 convert 输出的框标注（boxes.jsonl），输出图文对 JSONL |
 | `b2c_crop.py` | 切图生成（方案 B），将标注框裁切为 224x224 patch 并更新标注 |
 | `b2c_stats.py` | 统计 B2C 后数据分布（类别分布、每图目标数分布、caption 长度分布） |
 
-#### B2C 生成检查清单
+#### B2C 待办
 
-- [ ] 设计 caption 模板方案（简单模板 vs 多样化模板，决策依据见上）
-- [ ] 编写 `b2c_generate.py`：支持方案 A（整图）caption 生成
-- [ ] 在 100 张图上验证 caption 质量（人工检查 20 张，确保模板正确）
-- [ ] 编写 `b2c_crop.py`：支持方案 B（切图）caption 生成
-- [ ] 验证方案 B 的切图逻辑（框中心 → patch 裁剪 → 框重映射）
-- [ ] 生成全量训练文本文件，格式：`image_path\tcaption`
-- [ ] 统计分布并可视化（确保 caption 多样性足够）
+- 🔜 按 v2 模板重写 `b2c_generate.py`（每图多 caption + 空间信息）
+- 🔜 重跑已处理 4 个数据集（VisDrone/UAVDT/DroneVehicle/AU-AIR）的方案 A
 
 ### 1.5 p-Hash 去重与数据划分
 
-#### 1.5.1 p-Hash 去重流程
+**去重策略**：每 split 独立内部去重（train/val/test 各自独立聚类，互不跨集），阈值汉明距离 < 10。不做训练↔评测跨集去重。完整技术细节见 [`data/reports/index.md` 的「p-Hash 去重流程」](/data/reports/index.md#p-hash-去重流程)。
 
-```
-数据集 A（train）──┐
-数据集 B（train）──┤
-预处理数据（train） ├─→ 计算 p-Hash ─→ 聚类近似重复 ─→ 移除重复 ─→ 清洗后数据
-评测集（test）   ──┘                  ↑
-                                  阈值：hamming distance < 10（参考 RemoteCLIP）
-```
+**数据划分规则**：
 
-**参考**：
-- RemoteCLIP 对训练数据与 ImageNet/COCO 去重
-- 我们对自己训练集内部去重，也对训练集与评测集之间去重
+| 用途 | 来源 | 说明 |
+|------|------|------|
+| **训练集** | 各数据集 train + val | 只用 train/val，不上 test |
+| **验证集** | 从训练集随机抽 5% | 训练过程中的验证 |
+| **评测集** | 各数据集 test + 自建评测任务 | 仅评估，不参与训练 |
 
-#### 1.5.2 数据划分规则
-
-| 用途 | 来源 | 比例 | 说明 |
-|------|------|------|------|
-| **训练集** | 各数据集 train + val | ~90% | 只用 train/val，不上 test |
-| **验证集** | 从训练集随机抽 5% | ~5% | 训练过程中的验证 |
-| **评测集** | 各数据集 test + 自建任务 | ~5% | 仅评估，不参与训练 |
-
-**防数据泄漏**：
-- ✅ 训练集只使用各源数据集的 train/val 集
-- ✅ p-Hash 检测训练集与评测集间的近似重复
-- ✅ 验证集从训练集随机抽取，不包含评测集数据
-
-#### 去重与划分检查清单
-
-- [ ] 收集所有源数据集的 test 集路径（用于跨数据集去重检查）
-- [ ] 编写 `phash_dedup.py`：计算 p-Hash，hamming distance 去重
-- [ ] 去重统计：去除多少重复（预期 ~5-10%）
-- [ ] 按规则划分训练/验证/测试集
-- [ ] 验证集仅用于训练过程监控，不参加最终评测
+`phash_dedup.py` 已就绪 ✅
 
 ### 1.6 评测基准建设
 
 为 DroneCLIP 建立低空场景评估体系：
 
-#### 1.6.1 Zero-shot 分类
+#### 1.6.0 评测口径对齐 RemoteCLIP（2026-07-14 更新，已确认）
 
-**UAVBench-cls**（复用 UAVBench 的分类子集）：
-- 来源：UAVBench 测试集
-- 指标：Top-1 / Top-5 Accuracy
-- 评估方式：CLIP 式零样本分类（prompt ensembling）
+对标 RemoteCLIP 的三大评测套件（zero-shot 分类 / 图文检索 / 目标计数），本项目的映射与约束：
 
-**自建分类集**（从已有数据集提取）：
-| 任务 | 来源 | 类别数 | 样本数 |
-|------|------|--------|-------|
-| VisDrone 场景分类 | VisDrone-DET test | 10 | ~2k |
-| 车辆类型分类 | UAVDT test | 3 | ~5k |
-| 车辆类型分类 | DroneVehicle test | 5 | ~3k |
-| 场景分类 | AU-AIR test | 8 | ~3k |
+- **三大套件映射**（与 RemoteCLIP 对齐）：
+  - 零样本分类 → ERA（25 类事件分类，使用官方 test split 或随机留 20%）；
+  - 图文检索 → GeoText-1652 + UDV DIT（使用官方 test split 或随机留 20%）；
+  - 目标计数 → **CARPK 全量**（1448 张原始图像，不做去重；仅评测，不参与 B2C 训练）。
+- **防泄漏约束（关键）**：所有评测集（GeoText-1652 / UDV DIT / CARPK / ERA）**一律排除出训练 mix**；训练只读各源数据集的 train/val。CapERA 待调研 caption 粒度后再定是否纳入评测。
+- **评测集划分规则**：各评测集使用其官方 test split；若无官方划分，则**随机抽取 20% 作为 test 集**，80% 作为 gallery（检索）或 unused（分类/计数）。CARPK 因不参与训练，全量 1448 张直接作为计数评测集。
+- 形式对齐 RemoteCLIP 的评估方式（prompt ensembling / R@k / MAE），保证结果可比。
 
-#### 1.6.2 图文检索
+> 注：UAVBench 有分类/检索/计数子集（10 项任务，966k 样本），但走的是 MLLM instruction 路线，无原生 CLIP 可用格式，且测试图像与训练源数据重叠有泄漏风险，故不采用。评测任务以 1.6.0 映射为准。
 
-| 任务 | 来源 | 评估方式 | 指标 |
-|------|------|---------|------|
-| Image→Text 检索 | UAVBench caption 子集 | R@1, R@5, R@10 | Recall |
-| Text→Image 检索 | 同上 | R@1, R@5, R@10 | Recall |
-| Mean Recall | 综合 | — | 前两者均值 |
+#### 评测待办
 
-#### 1.6.3 目标计数（DroneCount）
-
-从各数据集 test 集中提取计数任务：
-| 难度 | 目标数范围 | 来源 |
-|------|-----------|------|
-| Easy | 1-8 | VisDrone/UAVDT/... test |
-| Moderate | 9-20 | 同上 |
-| Hard | >20 | 同上 |
-
-**指标**：MAE（Mean Absolute Error），Acc（<3 以内算对）
-
-#### 1.6.4 Few-shot 分类
-
-| 设置 | shots | 来源 |
-|------|-------|------|
-| 1-shot | 每类 1 张 | VisDrone / UAVBench |
-| 5-shot | 每类 5 张 | 同上 |
-| 10-shot | 每类 10 张 | 同上 |
-
-#### 评测基准检查清单
-
-- [ ] 下载 UAVBench 测试数据
-- [ ] 构建 zero-shot 分类 eval 脚本（复用 CLIP eval code）
-- [ ] 构建图文检索 eval 脚本
-- [ ] 构建 DroneCount 计数 eval 脚本
-- [ ] 构建 few-shot 分类 eval 脚本
-- [ ] 验证：用 OpenAI CLIP 在这些测评上跑 baseline 结果
-- [ ] 结果记录作为后续对比基线
+- 下载 ERA / GeoText-1652 / UDV DIT / CARPK / CapERA 数据
+- 编写 `zero_shot_cls.py` / `retrieval.py` / `counting.py`
+- 用 OpenAI CLIP 和 RemoteCLIP 权重跑 baseline
 
 ### 1.7 数据处理脚本结构
 
 ```
 data/
-├── raw/                     # 原始数据集下载位置（可软链到外部盘）
-│   ├── VisDrone/
-│   ├── UAVDT/
-│   ├── DroneVehicle/
-│   └── ...
-├── unified/                 # 统一 COCO 格式后
-│   ├── images/               # 所有图像
-│   └── annotations/
-│       ├── train_coco.json
-│       ├── val_coco.json
-│       └── ...
-├── b2c_output/              # B2C 生成结果
-│   └── droneclip_train.jsonl
-├── eval/                    # 评测基准
-│   ├── uavbench_cls/
-│   ├── dronecount/
-│   └── retrieval/
-└── scripts/                 # 处理脚本
+├── raw/                     # 原始数据集软链 → /data1/datasets/drone（单软链接）
+│   └── drone/               # 各数据集在 drone/ 下子目录
+├── b2c_output/              # B2C 生成结果（按数据集分目录，不经由 COCO 中转）
+│   ├── visdrone/
+│   │   ├── visdrone.dedup.jsonl        # 去重后图像（每 split 独立内部去重）
+│   │   ├── visdrone.boxes.jsonl        # convert 输出的每图检测框
+│   │   ├── visdrone.captions.jsonl     # 方案 A 整图 caption
+│   │   ├── visdrone.captions.{train,test}.jsonl
+│   │   ├── visdrone.crop224.jsonl      # 方案 B 切图 caption
+│   │   ├── visdrone.crop224.{train,test}.jsonl
+│   │   └── vis/                         # 可视化校验图
+│   └── uavdt/                # 同上结构
+├── eval/                    # 评测基准（待建设）
+│   ├── era/                 # 零样本分类（ERA）
+│   ├── retrieval/           # 图文检索（GeoText-1652 + UDV DIT）
+│   └── carpk/               # 目标计数（CARPK 全量）
+├── scripts/                 # 处理脚本
     ├── convert/
-    │   ├── convert_visdrone.py
-    │   ├── convert_uavdt.py
-    │   ├── convert_voc.py
-    │   ├── convert_seg.py
-    │   └── convert_mot.py
+    │   ├── convert_visdrone.py          # ✅ VisDrone-DET
+    │   ├── convert_uavdt.py             # ✅ UAVDT
+    │   ├── convert_dronevehicle.py      # ✅ DroneVehicle
+    │   ├── convert_auair.py             # ✅ AU-AIR
+    │   ├── convert_carpk.py             # ✅ CARPK
+    │   ├── convert_hazydet.py           # ⬜
+    │   ├── convert_rddts.py             # ⬜
+    │   └── convert_uavid.py / convert_aeroscapes.py / ... # ⬜
     ├── b2c/
-    │   ├── b2c_generate.py
-    │   ├── b2c_crop.py
-    │   └── b2c_stats.py
-    ├── phash_dedup.py
-    └── eval/
-        ├── eval_classification.py
-        ├── eval_retrieval.py
-        ├── eval_counting.py
-        └── eval_fewshot.py
+    │   ├── b2c_generate.py              # 方案 A 整图 caption
+    │   ├── b2c_crop.py                  # 方案 B 切图 caption
+    │   ├── b2c_stats.py                 # 分布统计
+    │   ├── split_jsonl.py               # 按官方 split 切分 train/test
+    │   └── vis_verify.py                # 画框可视化校验
+    ├── phash_dedup.py                   # 每 split 内部 p-Hash 去重（已就绪）
+    └── eval/                            # 评测脚本（待编写）
 ```
 
 ### 1.8 资源估算
@@ -422,13 +281,10 @@ RemoteCLIP 开源代码（[GitHub](https://github.com/ChenDelong1999/RemoteCLIP)
 | **RemoteCount** | 计数 benchmark 代码 | 直接复用或参考其计数评估方式 |
 
 **操作**：
-- [ ] `git clone https://github.com/ChenDelong1999/RemoteCLIP.git` 到 `references/RemoteCLIP`
-- [ ] 阅读 B2C 生成脚本，确认模板细节
-- [ ] 导出其训练超参数，用于 DroneCLIP 训练配置
-- [ ] 确认其对 RemoteCLIP 的零样本分类评测方式（prompt template、评测数据集划分）
+- [x] `git clone` 到 `reference/codes/RemoteCLIP` ✅（仓库只有推理/检索代码，无训练预处理）
 - [ ] 下载 RemoteCLIP 预训练权重，作为 baseline 对比
 
-> **注意**：RemoteCLIP 代码是基于老版 CLIP 的定制实现，可复用性有限。**训练和推理基于 OpenCLIP 实现**，RemoteCLIP 仅作为参考和对比基线。
+> **注意**：RemoteCLIP 代码**基于 OpenCLIP 库实现**（仓库直接调用 `open_clip.create_model_and_transforms`，并用 `pretrained='openai'` 从 OpenAI CLIP 权重初始化后继续预训练），与我们同基座；差异在训练数据与流程，不在代码底座。RemoteCLIP 仅作为参考与对比基线。
 ---
 
 ## 三、训练与实验（Phase 2，在数据就绪后启动）
@@ -451,6 +307,18 @@ RemoteCLIP 开源代码（[GitHub](https://github.com/ChenDelong1999/RemoteCLIP)
 | OpenAI CLIP | open_clip ViT-B/32, ViT-L/14 | 通用基线 |
 | RemoteCLIP | 官方权重 | 遥感域 CLIP，混合训练 |
 | CLIP 低空微调 | 用低空数据微调 CLIP | 控制变量，证明独立训练必要 |
+
+#### 3.2.1 训练基座决策（E，2026-07-14 更新）
+
+**前提澄清**：DroneCLIP 与 RemoteCLIP **同基于 OpenCLIP 库**（RemoteCLIP 仓库直接调用 `open_clip.create_model_and_transforms`，并用 `pretrained='openai'` 从 OpenAI CLIP 权重初始化后继续预训练）。因此 E 不是「OpenCLIP vs OpenAI CLIP」的伪二选一，而是两个独立维度：
+
+- **(a) 权重初始化选哪个**：
+  - `OpenAI CLIP 权重`（open_clip `pretrained='openai'`）→ 通用起点，最公平对比 RemoteCLIP 的增量来自「数据+流程」；
+  - `RemoteCLIP 已训权重` → 遥感先验热启动，看低空数据能否在其上再提升；
+  - `从头训练`（随机初始化）→ 最彻底，但需大量数据与算力，风险高。
+- **(b) backbone 尺寸**：ViT-B/32（快、E1-E5 默认）vs ViT-L/14（强、E6 最优）。
+
+**默认建议**：(a) 以 OpenAI CLIP 权重为基座（保证与 RemoteCLIP 的变量隔离），(b) 先用 ViT-B/32 跑通全部消融（E1-E5），最后 E6 上 ViT-L/14。是否用 RemoteCLIP 权重热启动留作可选对照。
 
 ---
 
@@ -494,22 +362,21 @@ RemoteCLIP 开源代码（[GitHub](https://github.com/ChenDelong1999/RemoteCLIP)
 
 ---
 
-## 六、第一周行动计划（2026-07-05 → 07-12）
+## 六、当前进展（截至 2026-07-14）
 
-| 日期 | 任务 | 产出 |
-|------|------|------|
-| Day 1 | 确认 GPU 环境 + 安装依赖 | 环境就绪 |
-| Day 1 | 下载 VisDrone-DET、UAVDT | 数据到手 |
-| Day 2 | 编写 `convert_visdrone.py` + `convert_uavdt.py` | 转换脚本 |
-| Day 2-3 | 转换并验证 VisDrone-DET → COCO | 可视化确认 |
-| Day 3-4 | 下载 DroneVehicle、AU-AIR | 扩展数据 |
-| Day 4-5 | 编写 `convert_voc.py`，转换 DroneVehicle + AU-AIR | 验证框正确性 |
-| Day 5 | 编写 `b2c_generate.py`（方案 A） | B2C 生成器 |
-| Day 6 | 在 VisDrone-DET 上跑 B2C，人工验证 caption 质量 | 确认模板有效 |
-| Day 6-7 | 编写 `phash_dedup.py` + 数据划分 | 清洗后数据 |
-| Day 7 | 搭建评测基线：OpenAI CLIP 在低空数据上跑 baseline | baseline 数据 |
-| Day 7 | **周终检查**：数据 Pipeline 可跑通 | 确认 Phase 1 进度 |
-| Day 8 | 下载 UAVBench 测试数据，跑 UAVIT-1M 中所有图像路径列表 | 交叉验证图像完整性 |
+### 已完成
+- VisDrone-DET / UAVDT / DroneVehicle / AU-AIR 四数据集的 B2C 全流程（去重→转换→B2C→拆分）✅
+- p-Hash 去重脚本（`phash_dedup.py`）✅
+- B2C 生成脚本（`b2c_generate.py` / `b2c_crop.py` / `split_jsonl.py` / `b2c_stats.py`）✅
+- 与 RemoteCLIP 对标完成，B2C v2 模板已定（每图多 caption + 空间信息）✅
+- 评测方案已定（ERA + GeoText-1652 + UDV DIT + CARPK）✅
+- 数据存储统一为单软链接 `data/raw/drone/` ✅
+
+### 下一步
+1. 按 v2 模板重写 `b2c_generate.py`，重跑 4 个已处理数据集的方案 A
+2. 下载 HazyDet + RDDTS，跑 B2C 全流程
+3. 下载评测数据（ERA / GeoText-1652 / UDV DIT / CARPK）
+4. 编写评测脚本（zero-shot 分类 / 检索 / 计数），跑 OpenAI CLIP + RemoteCLIP baseline
 
 ---
 

@@ -50,6 +50,8 @@
 - 在 OpenAI CLIP 权重基础上继续预训练（而非从零训练）
 - **图像预处理**：RandomResizedCrop 到 224×224，加随机水平翻转和 0°/90°/180°/270° 旋转。**未切图**——165,745 张训练图与原始数据集图片数完全对应，每张原图就是一条样本。对大图（DOTA 1504×1395）直接 crop+resize，小目标信息严重丢失
 
+> **实现细节（读代码确认，2026-07-14）**：RemoteCLIP 仓库只有推理/检索代码，**无训练预处理**；RandomResizedCrop 来自其依赖的 **OpenCLIP `preprocess_train`**（默认 `scale=(0.08,1.0)`、`ratio=(3/4,4/3)`、输出 224），即裁出区域面积为原图 8%–100% 间随机。推理/评测用 `preprocess_val` = `Resize(224)+CenterCrop(224)`（无随机 crop）。**对 DroneCLIP 的启示**：方案 A 整图可走 `preprocess_train`（与 RemoteCLIP 同，接受随机 crop 噪声）；但方案 B 的 224 crop 必须走**确定性变换**（避免再被随机裁而破坏 caption/crop 一致性）。
+
 ### 2.2 数据扩展：标注统一
 
 **问题**: 遥感有大量异构标注但缺乏图文对
@@ -91,19 +93,67 @@
 
 ---
 
+## 3. 训练与实验
+
+### 3.0 预训练设置（IV-A Implementation Details）
+
+**数据**：165,745 张图像 × 5 caption/图 = 828,725 图文对。
+
+**增强**：RandomResizedCrop → 224×224 + 随机水平翻转 + 0°/90°/180°/270° 旋转。
+
+**优化器**：Adam，linear warmup + cosine LR scheduler。
+
+**超参**：
+
+| Backbone | LR | Batch Size | Steps | 对应 epochs | 硬件事项 |
+|----------|-----|-----------|-------|-------------|---------|
+| RN50 | 7e-5 | 256 | 108,215 | ~33.4 | |
+| ViT-B-32 | 4e-5 | 256 | 108,215 | ~33.4 | |
+| ViT-L-14 | 1e-4 | 28 | 108,215 | ~3.66 | 4×3090Ti, 233.4h |
+
+> 108,215 步的由来：论文未解释该数字的选择依据。反推 828,725 图文对 / bs=256 ≈ 3,237 steps/epoch × 33.4 ≈ 108,215；ViT-L-14 因 bs=28 故仅 ~3.66 epochs。更像是按 ViT-L-14 的训练时间预算（233h）倒推出步数，再统一给三个模型。**对 DroneCLIP 的启示**：CLIP 风格预训练无验证/无 early stopping，步数是人为选定的。我们应沿 OpenCLIP 惯例——训固定 epoch（建议 30-50），在**每个 checkpoint 末尾跑一次下游评测集**，选下游指标最高的 checkpoint 作为最终模型。
+
+> 文本编码器：三种 backbone 共享同一结构（12 层 Transformer, 8 头注意力, max token 77, 与 OpenAI CLIP 一致）。参数量（64M / 63M / 124M）是 OpenAI CLIP 各 checkpoint 原生的固定搭配（RN50 / ViT-B-32 / ViT-L-14 的文本编码器宽度不同），非 RemoteCLIP 自行选择。论文未说明文本编码器的 LR 是否与图像编码器不同或共享——按 ITRA/OpenCLIP 惯例，两者共享同一优化器（Adam），即 LR 相同。
+
+**验证**：无。论文未提及训练过程中使用验证集（no early stopping / no best checkpoint selection），全程训满 108,215 steps，符合 CLIP 风格预训练惯例。
+
 ## 3. Experiments
 
-### 3.1 图文检索
-- RSITMD 上 mean recall 超 CLIP 9.14%
-- RSICD 上 mean recall 超 CLIP 8.92%
+### 3.1 图文检索（RET-3 = RSITMD + RSICD + UCM，三数据集）
 
-### 3.2 零样本分类
-- 13 个遥感场景分类数据集上平均准确率超 CLIP 6.39%
-- ViT-L/14 最强，ResNet-50 最轻量
+> 注：摘要只报了 RSITMD / RSICD 两个的「超 SOTA 幅度」；UCM 结果在 TABLE II，未进摘要。
 
-### 3.3 少样本分类
-- 1-shot/2-shot/4-shot/8-shot/16-shot 均优于 CLIP 和 MIM baseline
-- 证明图文对齐学到的语义特征泛化性强
+- RSITMD：RemoteCLIP (ViT-L-14) mean recall **50.52**，超此前 SOTA（Rahhal et al. 41.38）**+9.14%**
+- RSICD：RemoteCLIP (ViT-L-14) mean recall **36.35**，超此前 SOTA（Rahhal et al. 27.43）**+8.92%**
+- UCM：RemoteCLIP (ViT-L-14) mean recall **54.68**，但**未超过**此前 SOTA（FBCLM 61.60）——论文「三数据集均 SOTA」的表述在 UCM 上不成立
+
+### 3.2 零样本分类（12 个场景分类数据集）
+
+**12 个零样本评测集**（TABLE III，均不在训练集中）：
+PatternNet、EuroSAT、OPTIMAL-31、RSC11、AID、MLRSNet、RSI-CB128、RSI-CB256、RESISC45、WHU-earth、WHU-RS19、RS2800。
+
+**方法**：标准 template-based prompting，在 12 个数据集上测平均准确率。CLIP 和 RemoteCLIP 均用三种 backbone（RN50 / ViT-B-32 / ViT-L-14）分别评测。
+
+**结果**：
+
+| 模型 | 12 数据集平均准确率 | 相对 CLIP 提升 |
+|------|-------------------|---------------|
+| CLIP RN50 | 50.61% | — |
+| RemoteCLIP RN50 | 53.46% | +2.85% |
+| CLIP ViT-B-32 | 56.02% | — |
+| RemoteCLIP ViT-B-32 | **62.41%** | **+6.39%** |
+| CLIP ViT-L-14 | 65.67% | — |
+| RemoteCLIP ViT-L-14 | **71.30%** | **+5.63%** |
+
+- RemoteCLIP 在 12 个数据集中的 9 个（75%）上优于 CLIP。
+- 但在低分辨率数据集（EuroSAT 64×64）上落后（RN50 -24.83%、ViT-B-32 -11.15%、ViT-L-14 -0.27%），论文归因于高分辨率训练图与低分辨率评测图的域差距。
+
+> **对 DroneCLIP 的参考价值**：这 12 个均为**卫星/航拍场景分类**（俯视遥感场景），**没有低空无人机场景**。部分数据集（RESISC45/AID 等）含机场、港口等粗粒度场景，与 DroneCLIP 关注的车辆/行人/建筑等细粒度低空目标不重叠，且无法评估 B2C 计数、检索等能力。因此 RemoteCLIP 的零样本分类评测体系**不能直接复用**；DroneCLIP 的零样本分类评测应使用 P3 列出的**无人机专用分类集**（ERA / CapERA）。
+
+### 3.3 少样本分类（与零样本同 12 个评测集，1/4/8/16/32-shot）
+- 这些数据集本身有完整的 ground truth（图像类别标签），实验从每类中随机抽取 N 张（1/4/8/16/32-shot）作为训练集，测试集用剩余样本。
+- **下游线性探测**：在图像编码器后加线性层（logistic regression），**冻结图像编码器**，仅在线性层上训练（lr=0.8, SGD, CosineAnnealingLR, 1000 epochs）。
+- 32-shot 时 RemoteCLIP 在全部 12 个数据集上优于所有对比基线（CLIP、SSL 基础模型、ImageNet 预训练、ViTAE/SatMAE 等遥感基础模型）。
 
 ### 3.4 目标计数（RemoteCount）
 - **作者自建的 benchmark**，非已有公开数据集
