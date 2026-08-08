@@ -38,6 +38,7 @@
 ## 2024
 
 - **12-13** [RemDet: Efficient Model Design for UAV Detection](/readings/2024-12-13-remdet) — `uav-detection` `efficient-design`
+- **11-20** [GeoText-1652: NL-Guided Drones Benchmark](/readings/2024-11-20-geotext1652) — `text-image-retrieval` `uav` `benchmark` `spatial-relation` `vision-language`
 - **08-17** [LAE: Locate Anything on Earth for RS OVD](/readings/2024-08-17-lae) — `open-vocabulary` `remote-sensing` `DINO` `data-engine`
 - **01-30** [YOLO-World: Real-Time Open-Vocabulary Object Detection](/readings/2024-01-30-yoloworld) — `open-vocabulary` `YOLO` `real-time` `vision-language`
 - **09-25** [YOLO26 Jetson Benchmark](/readings/2025-09-25-yolo26-jetson-benchmark) — `benchmark`
