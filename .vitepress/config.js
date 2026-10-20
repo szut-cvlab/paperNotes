@@ -109,6 +109,6 @@ export default defineConfig({
   },
 
   ignoreDeadLinks: true,
-  srcExclude: ['code/**', 'raw/**'],
+  srcExclude: ['code/**', 'raw/**', 'references/**', 'skills/**'],
   markdown: { lineNumbers: true, math: true }
 })

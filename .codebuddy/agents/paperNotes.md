@@ -13,7 +13,7 @@ enabledAutoRun: true
 
 ---
 
-## 一、工作流程（4 步）
+## 一、工作流程（5 步）
 
 ### Step 1：识别输入类型
 
@@ -22,27 +22,44 @@ enabledAutoRun: true
 | arXiv ID / arXiv 链接 | 直接进入 Step 2 |
 | 论文标题/关键词 | 用 deepxiv skill 搜索 → 确认目标论文（向用户确认或选最相关）→ 进入 Step 2 |
 | 本地 PDF 路径 | 跳过下载，进入 Step 3 |
-| 微信公众号文章链接 | 用 gzh-hub skill：先 import，再获取 markdown 保存到 `references/`，然后按模板写解读到 `readings/`（跳过 Step 2-3 的论文流程） |
-| GitHub 代码仓库链接 | 下载到 `code/<slug>/`，作为论文解读的代码佐证 |
+| 微信公众号文章链接 | 用 gzh-hub skill：import → markdown 保存到 `references/`。**文章只是线索，不是终点**——从中提取所有外部链接（arXiv / GitHub 仓库 / 项目主页 / 官方博客），有则按 Step 2 追溯一手来源；确认无任何一手来源时才仅基于文章写解读（头部注明"仅基于公众号文章，数字未经原文核对"） |
+| GitHub 代码仓库链接 | clone 到 `code/<slug>/`，README/docs 视为一手资料，进入 Step 3 |
 
-### Step 2：获取原文（用 deepxiv skill）
+**公众号文章的链接追溯**：发布文常包含 GitHub 仓库、官方博客（项目主页上的 tech report / release notes）、HuggingFace 模型卡、arXiv 链接。官方博客和技术报告与论文同等效力，是解读的一手依据；公众号文章仅用于背景线索和快速了解。
 
-deepxiv skill 已包含搜索阅读和原文下载两种能力，加载后按需使用：
+### Step 2：获取原文（按来源类型路由）
+
+**来源优先级**：arXiv（LaTeX/PDF）> 官方技术报告/项目博客 > GitHub README/文档 > 公众号文章
+
+| 来源类型 | 获取方式 |
+|---------|---------|
+| arXiv 论文 | deepxiv skill：`deepxiv paper <id> --brief` 确认元信息 → `download_paper` 下 PDF+LaTeX 到 `raw/` |
+| GitHub 仓库 | `git clone https://github.com/<org>/<repo>.git code/<slug>/`，README 与 docs/ 作为一手资料 |
+| 官方博客/项目主页 | web_fetch 全文，存 `references/<日期>-<slug>-blog.md`（带来源 URL 头部） |
+| HuggingFace 模型卡 | web_fetch 模型卡内容，补充模型规模/训练细节等信息 |
 
 ```bash
-# 1. 确认论文信息（标题/日期/代码链接），~500 tokens
+# arXiv 论文标准流程
 deepxiv paper <arxiv_id> --brief
-
-# 2. 下载 PDF + LaTeX 到 raw/（skill 内有 download_paper 函数）
-#    产出：raw/YYYY-MM-DD-<slug>.pdf 和 raw/YYYY-MM-DD-<slug>-latex/
+# 产出：raw/YYYY-MM-DD-<slug>.pdf 和 raw/YYYY-MM-DD-<slug>-latex/
 ```
 
-**元信息记录**（写解读的头部要用）：标题、作者/机构、提交日期、发表会议、代码链接。优先从 `--brief` 获取，缺失时用 `--head` 或 web_search 补全。
+**元信息记录**（写解读的头部要用）：标题、作者/机构、提交日期、发表会议、代码链接。多源交叉补全：arXiv `--brief` / GitHub README / 官方博客 / web_search。
 
 ### Step 3：精读原文
 
-- **优先读 LaTeX 源码**（`raw/*-latex/` 中的 .tex）：公式 100% 精确，不会被 markdown 转译失真
-- **无 LaTeX 时读 PDF**：read_file 直接读 PDF 只会得到二进制乱码，须先转文本：
+- **优先级按 Step 2 的来源顺序**，高质量来源存在时不依赖低质量来源：
+  1. **LaTeX 源码**（`raw/*-latex/` 中的 .tex）：公式 100% 精确，不会被 markdown 转译失真
+  2. **PDF**：read_file 直接读 PDF 只会得到二进制乱码，须先转文本：
+  ```bash
+  pdftotext -layout raw/xxx.pdf /tmp/xxx.txt
+  ```
+  txt 中每页以换页符 `\f` 分隔，对应 PDF 页码。控制阅读量靠 read_file 分段读全文 txt 即可。
+  3. **官方博客/技术报告**：web_fetch 存档后 read_file 阅读
+  4. **GitHub README/代码**：clone 后阅读文档，对照实现细节
+- **有开源代码时**：clone 到 `code/<slug>/`，对照来源验证方法实现细节（关键超参、损失函数、数据处理）
+- **分层阅读**：先通读结构（摘要+图表+结论），再逐章节精读，不要上来就从头到尾线性读
+- **公众号文章中的数字**：仅当无法获取一手来源时才可采用，且须在文中标注"转引自公众号，未经原文核对"；能获取一手来源时必须替换为原文数字
   ```bash
   pdftotext -layout raw/xxx.pdf /tmp/xxx.txt
   ```
@@ -69,7 +86,7 @@ deepxiv paper <arxiv_id> --brief
 - **MM-DD** [论文标题](/readings/YYYY-MM-DD-<slug>) — `tag1` `tag2` `tag3`
 ```
 
-- `MM-DD` 取笔记日期的月-日；标题与标签沿用笔记头部的 **标题** 和 **标签** 字段
+- **标题一律用官方英文原名**（论文标题/项目 README 副标题），不写中文描述或自拟翻译；`MM-DD` 取笔记日期的月-日；标签沿用笔记头部的 **标签** 字段
 - 索引行链接无 `.md` 后缀（如 `/readings/2023-06-19-remoteclip`），与既有条目一致
 
 ---

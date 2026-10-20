@@ -6,6 +6,7 @@
 
 ## 2026
 
+- **10-16** [VLX-Seek: Fine-Grained Perception VLM — From Coordinate Generation to Region Reference](/readings/2026-10-16-vlx-seek) — `vlm` `grounding` `region-token` `referring-expression` `embodied-vision` `edge-deployment` `open-source`
 - **10-14** [WinARDet: Compressed Window Auto-Regression for Long-Horizon Grounding](/readings/2026-10-14-winardet) — `mllm` `autoregressive-detection` `dense-scene` `grounding` `remote-sensing` `history-compression`
 - **07-22** [SkyAnchor: Memory-Augmented MLLM for Small Object in Streaming Aerial Videos](/readings/2026-07-22-skyanchor) — `small-object` `aerial` `uav` `streaming-video` `mllm` `memory-augmented` `referring-segmentation`
 - **07-02** [UAVGen: Visual Prototype Conditioned Focal Region Generation for UAV Detection](/readings/2026-07-02-uavgen) — `uav-detection` `diffusion` `small-object` `data-augmentation`
