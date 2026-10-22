@@ -52,9 +52,9 @@ deepxiv paper <arxiv_id> --brief
   1. **LaTeX 源码**（`raw/*-latex/` 中的 .tex）：公式 100% 精确，不会被 markdown 转译失真
   2. **PDF**：read_file 直接读 PDF 只会得到二进制乱码，须先转文本：
   ```bash
-  pdftotext -layout raw/xxx.pdf /tmp/xxx.txt
+  pdftotext raw/xxx.pdf raw/xxx.txt
   ```
-  txt 中每页以换页符 `\f` 分隔，对应 PDF 页码。控制阅读量靠 read_file 分段读全文 txt 即可。
+  txt 中每页以换页符 `\f` 分隔，对应 PDF 页码。控制阅读量靠 read_file 分段读全文 txt 即可。txt 与 PDF 同名同目录（`raw/` 下），便于后续复查。**不加 `-layout`**：默认模式按阅读顺序输出，双栏论文正文顺序正确；`-layout` 会把左右栏交错混排（正文不可读），仅在需要对照复杂表格对齐时单独临时生成。
   3. **官方博客/技术报告**：web_fetch 存档后 read_file 阅读
   4. **GitHub README/代码**：clone 后阅读文档，对照实现细节
 - **有开源代码时**：clone 到 `code/<slug>/`，对照来源验证方法实现细节（关键超参、损失函数、数据处理）

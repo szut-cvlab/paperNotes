@@ -30,6 +30,7 @@
 
 ## 2025
 
+- **12-16** [WeDetect: Fast Open-Vocabulary Object Detection as Retrieval](/readings/2025-12-16-wedetect) — `open-vocabulary detection` `retrieval` `dual-tower` `REC` `object retrieval` `cvpr2026`
 - **11-24** [RefDrone: A Challenging Benchmark for Referring Expression Comprehension in Drone Scenes](/readings/2025-11-24-refdrone) — `REC` `UAV` `drone` `benchmark` `multi-target` `small object`
 - **11-15** [RF-DETR: Neural Architecture Search for Real-Time Detection Transformers](/readings/2025-11-15-rf-detr) — `DETR` `NAS` `real-time detection` `open-vocabulary`
 - **10-17** [ReCon: Region-Controllable Data Augmentation with Rectification and Alignment for Object Detection](/readings/2025-10-17-recon) — `neurips2025` `data-augmentation` `diffusion` `object-detection`
