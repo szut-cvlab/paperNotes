@@ -4,4 +4,4 @@
 
 ---
 
-- [年度汇总](/arxiv-daily/2026.md)
+- [年度汇总](/arxiv-daily/2026)

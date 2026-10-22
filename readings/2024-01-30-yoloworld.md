@@ -1,7 +1,6 @@
 # YOLO-World: Real-Time Open-Vocabulary Object Detection
 
 - **来源**: https://arxiv.org/abs/2401.17270
-- **本地Markdown**: `../raw/2024-01-30-yoloworld.md`
 - **日期**: 2024-01-30
 - **标签**: `open-vocabulary detection`, `YOLO`, `real-time`, `vision-language`, `re-parameterization`
 - **研究方向**: 2D Object Detection → 开放词汇检测 → 实时检测

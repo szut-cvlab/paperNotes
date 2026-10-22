@@ -3,7 +3,6 @@
 - **推文链接**: https://mp.weixin.qq.com/s/klDAKcB_OTt0NGWauUEccA
 - **推文标题**: TPAMI 2026｜弱监督视觉定位 SOTA！北大彭宇新团队开源 CPL++：无需密集标注，让视觉定位模型学会"自我纠偏"
 - **来源**: https://ieeexplore.ieee.org/document/11433810/
-- **本地PDF**: `../raw/2026-04-22-cpl-plus-plus.pdf`
 - **日期**: 2026-04-22
 - **标签**: `visual-grounding`, `weakly-supervised`, `pseudo-label`, `self-correction`, `tpami2026`
 - **研究方向**: Computer Vision → 视觉语言模型 → 弱监督视觉定位

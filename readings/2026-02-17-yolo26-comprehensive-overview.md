@@ -1,7 +1,6 @@
 # YOLO26: A Comprehensive Architecture Overview and Key Improvements
 
 - **来源**: https://arxiv.org/abs/2602.14582
-- **本地PDF**: `../raw/2026-02-17-yolo26-comprehensive-overview.pdf`
 - **日期**: 2026-02-17
 - **标签**: `yolo26`, `architecture`, `nms-free`, `third-party-analysis`
 - **研究方向**: 2D Object Detection → YOLO 系列

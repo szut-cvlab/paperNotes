@@ -6,11 +6,11 @@
 
 ## 一、数据准备（Phase 1 — 最重要，预计 3-4 周）
 
-数据是 DroneCLIP 项目最核心的环节。UAVBench/UAVIT-1M 论文 TABLE I 列出了 21 个源数据集的完整元数据（下载链接、图像数、分辨率、类别数、支持任务），但 **UAVIT-1M 只提供 MLLM instruction 格式数据，不含检测框标注，也不含实际图像文件**。[实际调查结果](#附录实验证-uavit-1m-的数据内容)：HuggingFace 上只有 `UAVIT-1M.json`（639 MB，1.24M 条 instruction 数据），图像路径为相对引用（如 `ERA/train/...`），**实际图像和检测框标注仍需从原数据源下载**。DroneCLIP 在此基础上补充 CARPK / VisDrone-VID / RefDrone，共 19 个数据集（CapERA、MOD20、WebUAV-3M/UAV123/UAVDT-S 已删除，完整清单见 [`data/reports/index.md`](/data/reports/index.md)）；UAVBench 笔记 TABLE I 见 [此处](/readings/2026-03-15-uavbench#21-数据构建)。
+数据是 DroneCLIP 项目最核心的环节。UAVBench/UAVIT-1M 论文 TABLE I 列出了 21 个源数据集的完整元数据（下载链接、图像数、分辨率、类别数、支持任务），但 **UAVIT-1M 只提供 MLLM instruction 格式数据，不含检测框标注，也不含实际图像文件**。[实际调查结果](#附录实验证-uavit-1m-的数据内容)：HuggingFace 上只有 `UAVIT-1M.json`（639 MB，1.24M 条 instruction 数据），图像路径为相对引用（如 `ERA/train/...`），**实际图像和检测框标注仍需从原数据源下载**。DroneCLIP 在此基础上补充 CARPK / VisDrone-VID / RefDrone，共 19 个数据集（CapERA、MOD20、WebUAV-3M/UAV123/UAVDT-S 已删除，完整清单见 `data/reports/index.md`（外部项目文件，不在本仓库））；UAVBench 笔记 TABLE I 见 [此处](/readings/2026-03-15-uavbench#21-数据构建)。
 
 ### 1.1 数据集清单
 
-数据集的完整逐条清单（含图像数、类别数、大小、下载链接、处理状态）见 [`data/reports/index.md`](/data/reports/index.md)。按 B2C 可行性分为以下几类：
+数据集的完整逐条清单（含图像数、类别数、大小、下载链接、处理状态）见 `data/reports/index.md`（外部项目文件，不在本仓库）。按 B2C 可行性分为以下几类：
 
 - **可直接 B2C（OD 检测框）**：VisDrone2019-DET ✅、UAVDT ✅、DroneVehicle ✅、AU-AIR ✅、HazyDet、RDDTS、UAVDT-M、VisDrone-VID（MOT，完整框）（8 个）
 - **M2B→B2C（语义分割 SS）**：UAVid、AeroScapes、FloodNet、UDD、VDD、Semantic Drone（6 个）
@@ -20,7 +20,7 @@
 
 ### 1.2 下载计划
 
-各数据集的下载链接、大小、当前状态均在 [`data/reports/index.md`](/data/reports/index.md) 中列出。按以下优先级分批下载：
+各数据集的下载链接、大小、当前状态均在 `data/reports/index.md`（外部项目文件，不在本仓库）中列出。按以下优先级分批下载：
 
 1. **OD 检测框（直接 B2C）**：VisDrone-DET、UAVDT、DroneVehicle、AU-AIR、HazyDet、RDDTS、UAVDT-M（MOT+OD）
 2. **MOT 多目标跟踪（有完整框，可 B2C，需视频帧抽样）**：VisDrone-VID
@@ -194,7 +194,7 @@ convert 输出的每图检测框（boxes.jsonl）
 
 ### 1.5 p-Hash 去重与数据划分
 
-**去重策略**：去重为**按需步骤**，仅视频抽帧数据集（如 VisDrone、UAVDT）需要，静态图像数据集默认不去重；需要时对整个数据集内部整体去重（汉明距离 < 10），不做训练↔评测跨集去重（评测集为独立数据集）。完整细节见 [`data/reports/index.md` 的「p-Hash 去重」](/data/reports/index.md)。
+**去重策略**：去重为**按需步骤**，仅视频抽帧数据集（如 VisDrone、UAVDT）需要，静态图像数据集默认不去重；需要时对整个数据集内部整体去重（汉明距离 < 10），不做训练↔评测跨集去重（评测集为独立数据集）。完整细节见 `data/reports/index.md` 的「p-Hash 去重」（外部项目文件，不在本仓库）。
 
 **数据划分规则**：
 

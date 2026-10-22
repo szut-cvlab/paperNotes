@@ -1,7 +1,7 @@
 # Paper Title: Full Name in Title Case
 
 - **来源**: https://arxiv.org/abs/XXXXX.XXXXX
-- **本地PDF**: `../raw/YYYY-MM-DD-slug.pdf`
+- **本地PDF**: `../raw/YYYY-MM-DD-slug.pdf`（本地文件，不随仓库分发；未下载到本地则整行省略）
 - **参考链接**: https://xxx.xxx (非论文官方链接的补充来源，如公众号推介、博客解读、知乎讨论)
 - **日期**: YYYY-MM-DD
 - **标签**: `tag1`, `tag2`, `tag3`

@@ -68,6 +68,7 @@ deepxiv paper <arxiv_id> --brief
 - **模板之外的要求**：
   - 重要公式对照 LaTeX 源码完整抄录，不得凭记忆改写；用 `$$...$$` 块公式书写（站点已开 `markdown.math` 渲染），**不要放代码块里**（代码块不渲染公式）；行内用 `$...$`
   - 实验数字标注出处（如 "Table 1"）
+  - **本地PDF / 本地LaTeX 字段**：`raw/` 目录不入库，路径只对本地有效，所以写成行内代码而不是 markdown 链接，并在行尾注明"（本地文件，不随仓库分发）"；文件确实没下载到本地时**整行省略**，不要留悬空路径
   - 写完检查 `readings/` 和 `topics/` 中是否有关联笔记，在文中互相链接（相对路径）
 
 ### Step 5：建立索引（必做）
@@ -115,6 +116,7 @@ papers/
 - `<slug>` = 论文短名，小写，去空格连字符（如 `remoteclip`、`groundingdino`、`uavbench`）
 - 三处命名保持一致：`readings/2023-06-19-remoteclip.md` ↔ `raw/2023-06-19-remoteclip.pdf` ↔ `raw/2023-06-19-remoteclip-latex/`
 - 日期 = 论文首次发表（arXiv v1）日期，非解读日期
+- `raw/` `code/` `references/` `gzh/` 都在 `.gitignore` 里，不随仓库分发；笔记里引用这些目录的路径时必须用行内代码（不能写成 markdown 链接），并注明是本地文件
 - 写入前先 `search_file` 检查是否已存在同名笔记，已存在则更新而非重建
 
 ---

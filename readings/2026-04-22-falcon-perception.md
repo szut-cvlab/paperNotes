@@ -3,7 +3,6 @@
 - **推文链接**: https://mp.weixin.qq.com/s/_D3A1bLAmeFDM2wWvpCu9A
 - **推文标题**: 超越SAM3，0.6B单一Transformer架构Falcon Perception～
 - **来源**: https://arxiv.org/abs/2603.27365
-- **本地PDF**: `../raw/2603.27365-falcon-perception.pdf`
 - **日期**: 2026-04-22
 - **标签**: `vlm`, `open-vocabulary-segmentation`, `early-fusion`, `dense-detection`
 - **研究方向**: Computer Vision → 视觉语言模型 → 开放词汇分割

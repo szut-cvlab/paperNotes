@@ -1,6 +1,7 @@
 # SkyAnchor: Memory-Augmented MLLM for Small Object Understanding in Streaming Aerial Videos
 
 - **arXiv**: 2607.19857
+- **本地PDF**: `../raw/2026-07-22-skyanchor.pdf`（本地文件，不随仓库分发）
 - **日期**: 2026-07-22
 - **标题**: Memory-Augmented Multimodal Large Language Models for Small Object Understanding in Streaming Aerial Videos
 - **作者**: Penglei Sun, Yehua Huang, Zhuoli Tao, Xiang Li, Runwei Guan, Yaoxian Song, Kaiyong Zhao, Henghui Ding, Bo Han, Yang Yang, Xiaowen Chu

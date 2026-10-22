@@ -3,7 +3,7 @@
 - **推文链接**: https://mp.weixin.qq.com/s/xxx（公众号/知乎等推文链接）
 - **推文标题**: 推文的完整标题
 - **来源**: https://arxiv.org/abs/XXXXX.XXXXX（论文链接）
-- **本地PDF**: `../raw/YYYY-MM-DD-slug.pdf`
+- **本地PDF**: `../raw/YYYY-MM-DD-slug.pdf`（本地文件，不随仓库分发；未下载到本地则整行省略）
 - **日期**: YYYY-MM-DD
 - **标签**: `tag1`, `tag2`, `tag3`
 - **研究方向**: 上游领域 → 中游方向 → 具体任务

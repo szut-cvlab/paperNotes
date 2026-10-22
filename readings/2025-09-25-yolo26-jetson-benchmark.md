@@ -1,8 +1,7 @@
 # Key Architectural Enhancements and Performance Benchmarking for Real-Time Object Detection
 
 - **来源**: https://arxiv.org/abs/2509.25164
-- **本地PDF**: `../raw/2025-09-25-yolo26-jetson-benchmark.pdf`
-- **日期**: 2025-09-25 (论文声称发布日期，实际有误)
+- **日期**: 2025-09-25（arXiv v1 提交日；论文声称 YOLO26 "released in September 2025" 有误，官方实际发布于 2026-01-14）
 - **标签**: `yolo26`, `benchmark`, `jetson`, `edge-deployment`, `third-party-analysis`
 - **研究方向**: 2D Object Detection → YOLO 系列 → 部署 benchmark
 - **核心贡献**: YOLO26 边缘设备部署分析 + YOLO全系列演进总结

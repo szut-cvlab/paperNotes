@@ -3,7 +3,7 @@
 - **推文链接**: https://mp.weixin.qq.com/s/Z4eNbhWL7FpBYte1ay8clg
 - **推文标题**: DEIMv2 后的又一力作！英特灵达开源 EdgeCrafter：让轻量级 ViT 在边缘端密集预测强于YOLO系
 - **来源**: https://arxiv.org/abs/2603.18739
-- **本地PDF**: `../raw/2026-03-19-edgecrafter.pdf`
+- **本地PDF**: `../raw/2026-03-19-edgecrafter.pdf`（本地文件，不随仓库分发）
 - **日期**: 2026-03-19
 - **标签**: `ViT`, `edge`, `knowledge distillation`, `object detection`, `pose estimation`, `instance segmentation`
 - **研究方向**: 2D Object Detection → 轻量级检测 → 边缘端密集预测

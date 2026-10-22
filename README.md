@@ -67,16 +67,26 @@ papers/
 - 文件名：`YYYY-MM-DD-<slug>.md`，`<slug>` 为论文短名小写连字符化（`remoteclip`、`uavgen`）
 - `readings/` 的日期 = 论文首次发表（arXiv v1）日期；`topics/` 的日期 = 专题撰写日期
 - 同一篇论文在三处的 slug 必须一致：`readings/2023-06-19-remoteclip.md` ↔ `raw/2023-06-19-remoteclip.pdf` ↔ `code/remoteclip/`
+- 笔记头部引用 `raw/` `code/` 里的文件时，写成行内代码而不是 markdown 链接，并注明"（本地文件，不随仓库分发）"；文件没下载到本地就整行省略，不留悬空路径
 
 ### 站点侧边栏的解析规则
 
-`.vitepress/config.js` 里有两个解析函数，规则不同，写索引时别混：
+`.vitepress/config.js` 里有三个解析函数，规则不同，写索引时别混：
 
 - `parseIndexSidebar()` → `/readings/`
   按 `## YYYY` 分组，条目必须严格匹配 `- **MM-DD** [标题](链接)`，漏写或格式不对**不会报错，只会静默不显示**
 - `parseFlatList()` → `/topics/`、`/top-conferences/`
   匹配任意 `- [标题](链接)`，可带 `— 概要` 后缀
-- `/arxiv-daily/` 的侧边栏是**硬编码数组**，新增年份需要手动改 `config.js`
+- `parseYearFiles()` → `/arxiv-daily/`
+  扫描 `arxiv-daily/` 下的 `YYYY.md` 自动生成年度归档列表，**新增年度文件不用改配置**
+
+### 链接写法
+
+站内链接写 `/readings/2026-05-10-hsgdet` 还是 `/readings/2026-05-10-hsgdet.md`，**两种都能正常渲染**。VitePress 的 `normalizeLink` 会把内部链接的 `.md` 去掉、补上 `.html`，正文里的 markdown 链接和侧边栏条目都走这套逻辑。
+
+仓库统一用不带 `.md` 的写法，只是为了跟 `readings/index.md`、`topics/index.md` 里的既有条目保持一致，不是功能上的必须。真要统一成另一种，改索引时批量替换即可，不会有渲染问题。
+
+另外：如果哪天在 `config.js` 里开了 `cleanUrls: true`，链接会自动变成无扩展名形式（`/readings/2026-05-10-hsgdet`），源码里怎么写都会归一化到同一种。
 
 ---
 
@@ -115,9 +125,10 @@ papers/
 - **04-28** [论文官方英文标题](/readings/2026-04-28-<slug>) — `tag1` `tag2` `tag3`
 ```
 
-- 标题一律用官方英文原名，不自拟中文翻译
-- 链接不带 `.md` 后缀
+- 标题一律用官方英文原名（与笔记 H1 保持一致），不自拟中文翻译
+- 链接不带 `.md` 后缀（仓库惯例；VitePress 两种写法都能正常渲染，见下文「链接写法」）
 - 标签取自笔记头部的 `**标签**` 字段
+- 追加位置是年份小节内**日期倒序**，同一天按文件名排
 
 ### 方式二：加一篇专题调研
 
@@ -132,6 +143,8 @@ papers/
 ### 方式三：加一份日报 / 顶会整理
 
 - 日报：原始结果落在 `arxiv-daily/digest-YYYY-MM-DD.json`（不入库），确认后把当天内容追加到 `arxiv-daily/2026.md` 的对应日期小节
+  - 小节内条目编号从 1 连续排
+  - 小节头写「今日 cs.CV 共 N 篇论文，命中 X 篇，收录 Y 篇」，收录数小于命中数时**必须显式写出**，否则看不出当天的归档是否完整
 - 顶会：编辑 `top-conferences/cvpr-2026.md`，并在 `top-conferences/index.md` 登记
 
 ### 提交前检查清单
@@ -139,6 +152,7 @@ papers/
 - [ ] 索引已注册，刷新站点后能在侧边栏看到新条目
 - [ ] 笔记中的公式能正常渲染（`$$` 块公式，不在代码块里）
 - [ ] 内部链接用相对路径且指向真实存在的文件
+- [ ] 笔记里引用 `raw/` `code/` 的地方写的是行内代码而不是链接，没有悬空路径
 - [ ] `raw/` `code/` `digest-*.json` 等中间产物没有被 `git add` 进去
 
 ---
@@ -185,13 +199,3 @@ npm run docs:build
 - `config.js` 里 `base` 未设置，默认部署在域名根路径。部署到子路径（如 `https://user.github.io/paperNotes/`）必须加上 `base: '/paperNotes/'`，否则静态资源全部 404
 - `ignoreDeadLinks: true` 已开启，站内失效链接不会中断构建，但失效链接也不会被提醒
 - 站点有两份导航配置：`index.md` 的 hero/actions 按钮和 `config.js` 的 nav。改导航要两处同时改
-- `config.js` 的 `socialLinks` 目前指向一个无关的仓库地址，上线前记得改成自己的主页
-
----
-
-## 已知问题
-
-- `readings/index.md` 有个别条目日期与所属年份小节不匹配，克隆后建议对照 `readings/` 实际文件名核对一遍
-- 笔记头部的 `**本地PDF**: ../raw/...` 指向 `raw/`，该目录未入库，克隆仓库后这些链接必然失效
-- `top-conferences/index.md` 中的链接带了 `.md` 后缀，与 VitePress 的链接规范不符
-- `arxiv-daily/2026.md` 的日期小节不是严格倒序，且覆盖天数少于本地 `digest-*.json` 数量

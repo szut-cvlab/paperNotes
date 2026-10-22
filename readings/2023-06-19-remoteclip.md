@@ -1,8 +1,6 @@
 # RemoteCLIP: A Vision Language Foundation Model for Remote Sensing
 
 - **来源**: https://arxiv.org/abs/2306.11029
-- **本地Markdown**: `../raw/2023-06-19-remoteclip.md`
-- **本地LaTeX**: `../raw/2023-06-19-remoteclip-latex/`
 - **日期**: 2023-06-19
 - **标签**: `vision-language model`, `remote sensing`, `CLIP`, `data scaling`, `zero-shot`
 - **研究方向**: 基础模型 → 视觉-语言预训练 → 遥感

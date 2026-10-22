@@ -58,6 +58,19 @@ function parseIndexSidebar(indexPath, linkPrefix) {
   return groups
 }
 
+// 扫描目录下的 YYYY.md 年度归档文件，自动生成侧边栏
+function parseYearFiles(dirPath, linkPrefix) {
+  const fullPath = path.join(__dirname, '..', dirPath)
+  if (!fs.existsSync(fullPath)) return []
+  return fs.readdirSync(fullPath)
+    .filter(f => /^\d{4}\.md$/.test(f))
+    .map(f => {
+      const year = f.replace(/\.md$/, '')
+      return { text: year, link: `${linkPrefix}/${year}` }
+    })
+    .sort((a, b) => b.text.localeCompare(a.text))
+}
+
 export default defineConfig({
   title: '科研笔记',
   description: 'Research Notes - 论文阅读与专题调研',
@@ -85,9 +98,7 @@ export default defineConfig({
       '/arxiv-daily/': [
         {
           text: 'arXiv日报',
-          items: [
-            { text: '2026', link: '/arxiv-daily/2026' }
-          ]
+          items: parseYearFiles('arxiv-daily', '/arxiv-daily')
         }
       ],
       '/top-conferences/': [
@@ -104,7 +115,7 @@ export default defineConfig({
     outline: { level: [2, 6], label: 'On this page' },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/hougeai/ultralytics/tree/dev' }
+      { icon: 'github', link: 'https://github.com/szut-cvlab/paperNotes' }
     ]
   },
 

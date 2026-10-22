@@ -1,8 +1,6 @@
 # Grounding DINO: Marrying DINO with Grounded Pre-Training for Open-Set Object Detection
 
 - **来源**: https://arxiv.org/abs/2303.05499
-- **本地Markdown**: `../raw/2023-03-09-groundingdino.md`
-- **本地代码**: `../code/GroundingDINO/`
 - **日期**: 2023-03-09
 - **标签**: `open-vocabulary detection`, `grounding`, `DINO`, `vision-language`
 - **研究方向**: 2D Object Detection → 开放词汇检测 → 视觉-语言融合检测
