@@ -70,6 +70,7 @@ deepxiv paper <arxiv_id> --brief
   - 实验数字标注出处（如 "Table 1"）
   - **本地PDF / 本地LaTeX 字段**：`raw/` 目录不入库，路径只对本地有效，所以写成行内代码而不是 markdown 链接，并在行尾注明"（本地文件，不随仓库分发）"；文件确实没下载到本地时**整行省略**，不要留悬空路径
   - 写完检查 `readings/` 和 `topics/` 中是否有关联笔记，在文中互相链接（相对路径）
+  - **配图**：在能帮助理解的适当位置插图（架构图、机制示意、效果演示等）。图源优先级：官方仓库 assets 目录 > LaTeX 源码 `raw/*-latex/figures/`（矢量图最清晰）> PDF 渲染截取（`pdftoppm -r 150` 出图后裁剪）。存放规则：`readings/assets/<slug>/`，笔记内用**相对路径**引用（如 `./assets/<slug>/xxx.webp`）——编辑器预览按文件位置解析可直接看图，VitePress 构建时相对路径图片会被自动打包，两种场景都渲染；不要用根绝对路径 `/assets/...`（本地 md 预览打不开）；**入仓配图一律转 WebP 压缩（quality 80–85），不保留原格式**——PDF 截图（png/jpg 中转件）同样要转，单图目标 <200KB、单篇配图总量 <1MB；`raw/` `code/` `references/` `gzh/` 均不入库，禁止放图
 
 ### Step 5：建立索引（必做）
 
