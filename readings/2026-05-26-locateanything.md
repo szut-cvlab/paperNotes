@@ -289,3 +289,35 @@ F1 的计算：在给定 IoU 阈值下，把所有预测框和 GT 做 Hungarian 
   3. Hybrid Mode 的回退条件（prob<0.7 且 diff>80）是手工设定的，不同场景可能需要调参
   4. 与 YOLO-World/YOLOE 这类纯卷积路线不同，LocateAnything 是 VLM 生成式路线，延迟仍远高于 YOLO 系列
   5. 评估指标用 F1@IoU 而非传统 AP，与 YOLO-World 等的 LVIS AP 不可直接对比
+
+## 相关工作对比
+
+### 底座对比（与 Rex-Omni / VLX-Seek 横向）
+
+| 工作 | 底座 | 是否整包 VLM | 改造点 |
+|------|------|------------|--------|
+| Rex-Omni | Qwen2.5-VL-3B（整包） | 是 | 复用 Qwen2.5-VL 词表末尾已有的 1000 个 token 表示坐标（相对坐标）；SFT + GRPO 后训练 |
+| VLX-Seek-1.5-10B | Qwen3.5-VL-9B（整包） | 是 | 区域引用范式 + HFRE 双路区域编码；**不生成坐标**，只选候选框 |
+| **LocateAnything-3B** | **Moon-ViT + Qwen2.5 的 LLM 解码器** | 否 | PBD 并行框解码 + 双公式联合训练（NTP + 块级 MTP） |
+
+> 注：**Moon-ViT 出自 Kimi-VL（月之暗面/Moonshot AI）的原生分辨率视觉编码器**（已 MIT 开源 MoonViT-SO-400M）。其「原生分辨率 + 2D RoPE + Pixel Shuffle + 窗口注意力」四件套与 Qwen2.5-VL / Qwen3-VL 视觉塔**思路一致**，对照如下：
+
+| 机制 | Moon-ViT | Qwen2.5-VL | Qwen3-VL |
+|------|----------|-----------|----------|
+| 原生/动态分辨率（Any-Res） | ✅ | ✅ 动态分辨率（H/W 调成 28 倍数） | ✅ SigLIP-2 + 动态分辨率 |
+| 2D RoPE（分辨率鲁棒位置） | ✅ | ✅ 2D/3D-RoPE | ✅ 2D-RoPE |
+| Pixel Shuffle（4 patch→1，token 砍 4×） | ✅ 2×2 space-to-depth | ✅ merger：相邻 4 patch 拼接过 MLP | ✅ MLP merger |
+| 窗口注意力（窗口内不 padding） | ✅ | ✅ window=112 | ✅ |
+| 多层级/多尺度融合 | 靠 FPN/aux | 部分 | ✅ **DeepStack** 显式融多层级 ViT 特征 |
+
+> Moon-ViT 真正区别于 Qwen 视觉塔的只有两点：① **独立开源、可插拔**——依据：Moonshot 以 MIT 把 MoonViT-SO-400M 作为**独立编码器**开源（官方称「separated from the Kimi-VL model」），且 LocateAnything 实测用它配 **Qwen2.5 LLM**（非 Kimi 原装 LLM），证明其可跨 LLM 复用；而 Qwen 视觉栈（merger / MRoPE / DeepStack）与自家 LLM 强集成、不单独出独立编码器包（注：Qwen3-VL 视觉塔底座是 SigLIP-2 这种通用编码器，但集成层仍 Qwen 专属）。「解耦」指不绑定单一 LLM、可独立复用，非字面零耦合——接任意 LLM 仍需自配 MLP 投影器（LocateAnything 即自写）；② `cu_seqlens` 变长注意力**零 padding 多图打包**（异构 batch 零浪费，属实现层效率技巧）。即 LocateAnything 选它是「拿来一个强且能直接用的原生分辨率开源编码器」，非「用了 Qwen 没有的新视觉架构」。
+
+### 三种定位范式对照（同系列笔记：Rex-Omni / VLX-Seek / LocateAnything）
+
+| 维度 | Rex-Omni | VLX-Seek | LocateAnything |
+|------|----------|----------|----------------|
+| 坐标怎么出 | 生成 `<0>`–`<999>` 特殊 token（相对坐标） | **不生成坐标**，输出候选框索引 `<obji>` | 生成 `<box>x1 y1 x2 y2</box>` 文本坐标 |
+| 解码方式 | 逐 token 自回归（NTP） | 索引选择（无坐标解码） | 框对齐原子块并行解码（PBD） |
+| 核心 trick | 复用词表末 1000 个已有 token 表示坐标 + GRPO | HFRE 双路区域编码 + 显式 None | 框对齐双向注意力 + 双公式训练 + Hybrid 回退 |
+| 速度瓶颈 | 中（5.0 BPS） | 低延迟（不解码坐标） | 快（12.7–16.9 BPS） |
+| 漏检上限 | 受生成能力限 | 受候选生成器限（OPN 未开源） | 受生成能力限 |
