@@ -6,6 +6,7 @@
 
 ## 2026
 
+- **10-22** [WeVisOne-VL: Unified Visual Perception from Objects to Pixels](/readings/2026-10-22-wevisone-vl) — `vlm` `object-detection` `segmentation` `matting` `rejection` `data-engine` `grpo` `open-source`
 - **10-16** [VLX-Seek: Improving VLM Fine-Grained Perception via Region Reference Instead of Coordinate Generation](/readings/2026-10-16-vlx-seek) — `vlm` `grounding` `region-token` `referring-expression` `embodied-vision` `edge-deployment` `open-source`
 - **10-14** [WinARDet: Compressed Window Auto-Regression for Long-Horizon Vision-Language Grounding](/readings/2026-10-14-winardet) — `mllm` `autoregressive-detection` `dense-scene` `grounding` `remote-sensing` `history-compression`
 - **07-22** [SkyAnchor: Memory-Augmented MLLM for Small Object Understanding in Streaming Aerial Videos](/readings/2026-07-22-skyanchor) — `small object` `aerial video` `streaming` `MLLM` `memory-augmented` `referring segmentation`

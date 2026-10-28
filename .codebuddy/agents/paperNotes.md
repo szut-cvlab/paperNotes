@@ -34,14 +34,17 @@ version: 1.0.0
 
 | 来源类型 | 获取方式 |
 |---------|---------|
-| arXiv 论文 | deepxiv skill：`deepxiv paper <id> --brief` 确认元信息 → `download_paper` 下 PDF+LaTeX 到 `raw/` |
+| arXiv 论文 | deepxiv skill：`.venv-deepxiv/bin/deepxiv paper <id> --brief` 确认元信息 → `download_paper` 下 PDF+LaTeX 到 `raw/` |
 | GitHub 仓库 | `git clone https://github.com/<org>/<repo>.git code/<slug>/`，README 与 docs/ 作为一手资料 |
 | 官方博客/项目主页 | web_fetch 全文，存 `references/<日期>-<slug>-blog.md`（带来源 URL 头部） |
 | HuggingFace 模型卡 | web_fetch 模型卡内容，补充模型规模/训练细节等信息 |
 
 ```bash
 # arXiv 论文标准流程
-deepxiv paper <arxiv_id> --brief
+# ⚠️ deepxiv 必须用项目根目录的 .venv-deepxiv 环境运行：
+#    系统 Python 3.8 不支持 `str | None` 语法，直接跑 deepxiv 会报
+#    TypeError: unsupported operand type(s) for |: 'type' and 'NoneType'
+.venv-deepxiv/bin/deepxiv paper <arxiv_id> --brief
 # 产出：raw/YYYY-MM-DD-<slug>.pdf 和 raw/YYYY-MM-DD-<slug>-latex/
 ```
 
