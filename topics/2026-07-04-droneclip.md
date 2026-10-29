@@ -6,7 +6,7 @@
 
 ## 一、数据准备（Phase 1 — 最重要，预计 3-4 周）
 
-数据是 DroneCLIP 项目最核心的环节。UAVBench/UAVIT-1M 论文 TABLE I 列出了 21 个源数据集的完整元数据（下载链接、图像数、分辨率、类别数、支持任务），但 **UAVIT-1M 只提供 MLLM instruction 格式数据，不含检测框标注，也不含实际图像文件**。[实际调查结果](#附录实验证-uavit-1m-的数据内容)：HuggingFace 上只有 `UAVIT-1M.json`（639 MB，1.24M 条 instruction 数据），图像路径为相对引用（如 `ERA/train/...`），**实际图像和检测框标注仍需从原数据源下载**。DroneCLIP 在此基础上补充 CARPK / VisDrone-VID / RefDrone，共 19 个数据集（CapERA、MOD20、WebUAV-3M/UAV123/UAVDT-S 已删除，完整清单见 `data/reports/index.md`（外部项目文件，不在本仓库））；UAVBench 笔记 TABLE I 见 [此处](/readings/2026-03-15-uavbench#21-数据构建)。
+数据是 DroneCLIP 项目最核心的环节。UAVBench/UAVIT-1M 论文 TABLE I 列出了 21 个源数据集的完整元数据（下载链接、图像数、分辨率、类别数、支持任务），但 **UAVIT-1M 只提供 MLLM instruction 格式数据，不含检测框标注，也不含实际图像文件**。[实际调查结果](#附录实验证-uavit-1m-的数据内容)：HuggingFace 上只有 `UAVIT-1M.json`（639 MB，1.24M 条 instruction 数据），图像路径为相对引用（如 `ERA/train/...`），**实际图像和检测框标注仍需从原数据源下载**。DroneCLIP 在此基础上补充 CARPK / VisDrone-VID / RefDrone，共 19 个数据集（CapERA、MOD20、WebUAV-3M/UAV123/UAVDT-S 已删除，完整清单见 `data/reports/index.md`（外部项目文件，不在本仓库））；UAVBench 笔记 TABLE I 见 [此处](/readings/2026/2026-03-15-uavbench#21-数据构建)。
 
 ### 1.1 数据集清单
 

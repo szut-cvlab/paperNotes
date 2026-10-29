@@ -314,13 +314,13 @@ RemoteCLIP 是三篇论文都依赖的基础模型：
 ## 未来工作：低空遥感视觉-语言基础模型
 
 **价值**：
-- **UAVBench & UAVIT-1M**（[笔记](/readings/2026-03-15-uavbench)，2026-03，arXiv 2603.14336）针对低空无人机场景构建了 benchmark + 1.24M 指令微调数据集（789k 无人机图），但走的是 **MLLM 路线**（instruction tuning），不是 CLIP 范式的对比预训练。且 instruction tuning 只训练对齐层+LoRA，**没有改变视觉编码器**（CLIP ViT）本身的低空表征能力，region-level 任务（检测/grounding）提升有限。两者目标不同（推理 vs 表征对齐）
+- **UAVBench & UAVIT-1M**（[笔记](/readings/2026/2026-03-15-uavbench)，2026-03，arXiv 2603.14336）针对低空无人机场景构建了 benchmark + 1.24M 指令微调数据集（789k 无人机图），但走的是 **MLLM 路线**（instruction tuning），不是 CLIP 范式的对比预训练。且 instruction tuning 只训练对齐层+LoRA，**没有改变视觉编码器**（CLIP ViT）本身的低空表征能力，region-level 任务（检测/grounding）提升有限。两者目标不同（推理 vs 表征对齐）
 - 目前仍**没有专门的低空遥感 CLIP 范式 VL 基础模型**
 - 无人机应用爆发（巡检、配送、安防、农业），低空遥感是独立大场景，不是卫星遥感的附属
 - 专门针对一个域训练可消解卫星图与无人机图同名目标视觉特征冲突的问题
 
 **挑战**：
-- **数据量**：UAVIT-1M 已整合 21 个无人机数据集共 789k 图像（[笔记](/readings/2026-03-15-uavbench)），远超 RemoteCLIP 的 165k——**数据量不再是瓶颈**。且源数据集都有检测框/分割标注，可直接用于 region-text 配对或 B2C 生成 caption
+- **数据量**：UAVIT-1M 已整合 21 个无人机数据集共 789k 图像（[笔记](/readings/2026/2026-03-15-uavbench)），远超 RemoteCLIP 的 165k——**数据量不再是瓶颈**。且源数据集都有检测框/分割标注，可直接用于 region-text 配对或 B2C 生成 caption
 - **小目标问题更严重**：无人机图目标更小更密，RemoteCLIP 的 image-level CLIP 范式在此更不适用，需要 region-level 对齐
 - **CLIP 224×224 输入硬限制**：照搬 RemoteCLIP 架构小目标问题不仅没解决反而更严重，需考虑高分辨率输入、切图训练、或 region-text 对齐等改动
 

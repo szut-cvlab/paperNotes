@@ -72,7 +72,7 @@ C. MLLM 生成式检测（坐标预测，语言理解强）
 
 ### 2.3 RemoteCLIP
 
-**论文**：RemoteCLIP: A Vision Language Foundation Model for Remote Sensing（TGRS 2024，612 引用）| [阅读笔记](/readings/2023-06-19-remoteclip)
+**论文**：RemoteCLIP: A Vision Language Foundation Model for Remote Sensing（TGRS 2024，612 引用）| [阅读笔记](/readings/2023/2023-06-19-remoteclip)
 
 **核心问题**：遥感基础模型用 MIM（Masked Image Modeling）自监督训练，学到低层特征（遮挡不变性），但遥感俯视图无遮挡、缺乏语义。CLIP 的大模型在遥感零样本分类上已经比 MIM 小模型强——问题不是架构，而是**数据**。
 
@@ -96,7 +96,7 @@ C. MLLM 生成式检测（坐标预测，语言理解强）
 
 #### 2.4.1 CastDet：首个航空 OVD
 
-**论文**：CastDet: Toward Open Vocabulary Aerial Object Detection with CLIP-Activated Student-Teacher Learning（ECCV 2024）| [阅读笔记](/readings/2023-11-20-casdet)
+**论文**：CastDet: Toward Open Vocabulary Aerial Object Detection with CLIP-Activated Student-Teacher Learning（ECCV 2024）| [阅读笔记](/readings/2023/2023-11-20-casdet)
 
 **核心思路**：CLIP-Activated 机制——CLIP 做分类器而非直接教师，结合 Soft Teacher 做定位。
 
@@ -116,7 +116,7 @@ C. MLLM 生成式检测（坐标预测，语言理解强）
 
 #### 2.4.2 LAE-DINO：奠基性工作
 
-**论文**：LAE: Locate Anything on Earth — Advancing Open-Vocabulary Object Detection for Remote Sensing（2024，49 引用）| [阅读笔记](/readings/2024-08-17-lae)
+**论文**：LAE: Locate Anything on Earth — Advancing Open-Vocabulary Object Detection for Remote Sensing（2024，49 引用）| [阅读笔记](/readings/2024/2024-08-17-lae)
 
 **两大贡献**：
 
@@ -131,7 +131,7 @@ C. MLLM 生成式检测（坐标预测，语言理解强）
 
 基于 GroundingDINO 架构，两个新模块：
 
-**GroundingDINO 基座**：DINO 检测器 + BERT 文本编码器，三阶段深度融合（Feature Enhancer / Language-Guided Query Selection / Cross-Modality Decoder），ContrastiveEmbed 分类。BERT 端到端训练可适应检测任务，但推理慢（1-5 FPS）且受 256 token 限制。详见[Grounding DINO 笔记](/readings/2023-03-09-groundingdino)
+**GroundingDINO 基座**：DINO 检测器 + BERT 文本编码器，三阶段深度融合（Feature Enhancer / Language-Guided Query Selection / Cross-Modality Decoder），ContrastiveEmbed 分类。BERT 端到端训练可适应检测任务，但推理慢（1-5 FPS）且受 256 token 限制。详见[Grounding DINO 笔记](/readings/2023/2023-03-09-groundingdino)
 
 **DVC（Dynamic Vocabulary Construction）**：
 - 动机：BERT 最大 256 token，~1600 类拼接后远超上限
@@ -159,7 +159,7 @@ VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 
 #### 2.4.3 DisDop：域先验蒸馏
 
-**论文**：DisDop: Distillation with Domain Priors for Open-Vocabulary Aerial Object Detection（2026）| [阅读笔记](/readings/2026-05-23-disdop)
+**论文**：DisDop: Distillation with Domain Priors for Open-Vocabulary Aerial Object Detection（2026）| [阅读笔记](/readings/2026/2026-05-23-disdop)
 
 **核心思路**：不是从零训大模型，而是从已有遥感基础模型蒸馏域先验到轻量检测器。论文用 "drone's viewpoint" 描述目标场景，但实际评测数据集（DIOR/DOTAv2.0/LAE-80C）都是卫星/高空航拍图，和真正的低空无人机图（如 VisDrone）还有距离。遥感基础模型（RemoteCLIP/DINOv3）在这些数据上有天然优势，因为训练域和评测域一致。
 
@@ -217,7 +217,7 @@ VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 
 #### 2.5.1 VLDet
 
-**核心**：VL-PUB（Visual-Language Pyramid Upscale Block）将 CLIP 的单尺度特征重构为多尺度特征金字塔 + SigRPN（sigmoid-based anchor-text 对比对齐 loss）。解决 CLIP 单尺度不适配检测多尺度需求的问题。| [阅读笔记](/readings/2026-01-31-vldet)
+**核心**：VL-PUB（Visual-Language Pyramid Upscale Block）将 CLIP 的单尺度特征重构为多尺度特征金字塔 + SigRPN（sigmoid-based anchor-text 对比对齐 loss）。解决 CLIP 单尺度不适配检测多尺度需求的问题。| [阅读笔记](/readings/2026/2026-01-31-vldet)
 
 #### 2.5.2 YOLO-World
 
@@ -229,39 +229,39 @@ VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 3. 速度：52-105 FPS vs 1-5 FPS
 4. 数据量：162 万 vs 480-650 万，但 LVIS AP 更高
 
-**对低空遥感的启示**：实时推理 + 重参数化部署友好，但 CLIP 冻结在遥感视角偏置下可能更弱，需要域适应机制。详见[YOLO-World 笔记](/readings/2024-01-30-yoloworld)
+**对低空遥感的启示**：实时推理 + 重参数化部署友好，但 CLIP 冻结在遥感视角偏置下可能更弱，需要域适应机制。详见[YOLO-World 笔记](/readings/2024/2024-01-30-yoloworld)
 
 #### 2.5.3 YOLOE
 
-**核心**：统一三种提示范式（Text/Visual/Prompt-Free）的实时开放词汇检测+分割。RepRTA 用轻量辅助网络精炼 CLIP 文本嵌入（推理时重参数化零开销）；SAVPE 解耦语义+激活分支编码视觉提示；LRPC 将 prompt-free 从生成问题转为检索问题（专用嵌入找目标+内置词表检索类别），无需 LLM。训练成本仅 YOLO-World 的 1/3，v8-S 超 YOLO-Worldv2-S 3.5 AP。| [阅读笔记](/readings/2025-03-10-yoloe)
+**核心**：统一三种提示范式（Text/Visual/Prompt-Free）的实时开放词汇检测+分割。RepRTA 用轻量辅助网络精炼 CLIP 文本嵌入（推理时重参数化零开销）；SAVPE 解耦语义+激活分支编码视觉提示；LRPC 将 prompt-free 从生成问题转为检索问题（专用嵌入找目标+内置词表检索类别），无需 LLM。训练成本仅 YOLO-World 的 1/3，v8-S 超 YOLO-Worldv2-S 3.5 AP。| [阅读笔记](/readings/2025/2025-03-10-yoloe)
 
 #### 2.5.4 YOLOE-26
 
 **核心**：统一 Object Embedding 空间，支持 Text/Visual/Prompt-Free 三种推理模式。NMS-Free 端到端架构，保留 YOLO 效率。内置 4585 类别词表，适合未知场景自动发现。
 
-**对低空遥感的启示**：Prompt-Free 模式 + 内置大词表，可能适合无人机场景"先发现再确认"的工作流。| [阅读笔记](/readings/2026-02-03-yoloe-26)
+**对低空遥感的启示**：Prompt-Free 模式 + 内置大词表，可能适合无人机场景"先发现再确认"的工作流。| [阅读笔记](/readings/2026/2026-02-03-yoloe-26)
 
 #### 2.5.5 Rex-Omni
 
 **核心**：MLLM-based detection，量化坐标 + 特殊 token + SFT+GRPO 两阶段训练。关键发现：GRPO 的主要价值是**纠正行为缺陷**（重复预测、过大框）而非提升原始坐标精度。
 
-**对低空遥感的启示**：密集小目标场景下 MLLM 的重复预测问题严重（VisDrone 上 15.3%），GRPO 后训练可有效缓解。| [阅读笔记](/readings/2025-10-14-rex-omni)
+**对低空遥感的启示**：密集小目标场景下 MLLM 的重复预测问题严重（VisDrone 上 15.3%），GRPO 后训练可有效缓解。| [阅读笔记](/readings/2025/2025-10-14-rex-omni)
 
 #### 2.5.6 Falcon Perception
 
 **核心**：单一 early-fusion dense transformer，图像 patch 和文本 token 从第一层就共享同一 Transformer。Chain-of-Perception（coord→size→seg）coarse-to-fine 生成。0.6B 参数在 Dense 场景（≥600 实例）吊打大模型。
 
-**对低空遥感的启示**：密集场景处理能力强，早期融合可能比 encoder-decoder 分离架构更适合无人机密集小目标。| [阅读笔记](/readings/2026-04-22-falcon-perception)
+**对低空遥感的启示**：密集场景处理能力强，早期融合可能比 encoder-decoder 分离架构更适合无人机密集小目标。| [阅读笔记](/readings/2026/2026-04-22-falcon-perception)
 
 #### 2.5.7 LocateAnything
 
 **核心**：VLM 并行框解码（Parallel Box Decoding, PBD）——将 bbox 视为原子单元一步并行解码，块内双向注意力保持框内几何连贯性。三种推理模式（Fast 16.9 BPS / Slow 52.1 F1 / Hybrid 12.7 BPS）。138M 查询、785M 框的大规模训练数据。
 
-**对低空遥感的启示**：VisDrone 39.9 F1（+4.1 vs Rex-Omni），密集场景优势明显；Hybrid Mode 12.7 BPS 的速度适合近实时处理。但 3B 参数量 + H100 依赖限制了边缘部署。| [阅读笔记](/readings/2026-05-26-locateanything)
+**对低空遥感的启示**：VisDrone 39.9 F1（+4.1 vs Rex-Omni），密集场景优势明显；Hybrid Mode 12.7 BPS 的速度适合近实时处理。但 3B 参数量 + H100 依赖限制了边缘部署。| [阅读笔记](/readings/2026/2026-05-26-locateanything)
 
 ### 2.6 Seg2Change（开放词汇变化检测）
 
-**核心**：将开放词汇语义分割模型适配为变化检测。类别无关变化图（CACH）解耦语义分割与变化推理，摆脱 SAM 依赖和固定阈值。| [阅读笔记](/readings/2026-04-12-seg2change)
+**核心**：将开放词汇语义分割模型适配为变化检测。类别无关变化图（CACH）解耦语义分割与变化推理，摆脱 SAM 依赖和固定阈值。| [阅读笔记](/readings/2026/2026-04-12-seg2change)
 
 ---
 
@@ -269,7 +269,7 @@ VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 
 ### 3.1 UAVBench & UAVIT-1M
 
-**UAVBench**：首个低空无人机 VL benchmark，966k 测试样本，43 个测试单元，10 个任务（image-level 6 + region-level 4）| [阅读笔记](/readings/2026-03-15-uavbench)
+**UAVBench**：首个低空无人机 VL benchmark，966k 测试样本，43 个测试单元，10 个任务（image-level 6 + region-level 4）| [阅读笔记](/readings/2026/2026-03-15-uavbench)
 
 **UAVIT-1M**：1.24M 指令微调数据集，789k 无人机图像，21 个源数据集
 
@@ -328,17 +328,17 @@ VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 
 | 论文 | 年份 | 笔记链接 | 核心角色 |
 |------|------|---------|---------|
-| Grounding DINO | 2023 | [笔记](/readings/2023-03-09-groundingdino) | LAE-DINO/DisDop 的检测器基座 |
-| RemoteCLIP | 2023 | [笔记](/readings/2023-06-19-remoteclip) | 首个遥感 VL 基础模型 |
-| CastDet | 2023 | [笔记](/readings/2023-11-20-casdet) | 首个航空 OVD |
-| YOLO-World | 2024 | [笔记](/readings/2024-01-30-yoloworld) | 实时开放词汇检测（YOLO 路线） |
-| LAE-DINO | 2024 | [笔记](/readings/2024-08-17-lae) | 大规模数据+检测器 |
-| YOLOE | 2025 | [笔记](/readings/2025-03-10-yoloe) | 统一三提示范式实时开放词汇检测 |
-| VLDet | 2026 | [笔记](/readings/2026-01-31-vldet) | CLIP 特征金字塔适配 |
-| YOLOE-26 | 2026 | [笔记](/readings/2026-02-03-yoloe-26) | 统一 Embedding 开放词汇检测 |
-| UAVBench | 2026 | [笔记](/readings/2026-03-15-uavbench) | 低空 VL benchmark |
-| Seg2Change | 2026 | [笔记](/readings/2026-04-12-seg2change) | 开放词汇变化检测 |
-| Falcon Perception | 2026 | [笔记](/readings/2026-04-22-falcon-perception) | Early-fusion dense transformer |
-| Rex-Omni | 2026 | [笔记](/readings/2025-10-14-rex-omni) | MLLM-based detection |
-| DisDop | 2026 | [笔记](/readings/2026-05-23-disdop) | 域先验蒸馏 SOTA |
-| LocateAnything | 2026 | [笔记](/readings/2026-05-26-locateanything) | VLM 并行框解码 |
+| Grounding DINO | 2023 | [笔记](/readings/2023/2023-03-09-groundingdino) | LAE-DINO/DisDop 的检测器基座 |
+| RemoteCLIP | 2023 | [笔记](/readings/2023/2023-06-19-remoteclip) | 首个遥感 VL 基础模型 |
+| CastDet | 2023 | [笔记](/readings/2023/2023-11-20-casdet) | 首个航空 OVD |
+| YOLO-World | 2024 | [笔记](/readings/2024/2024-01-30-yoloworld) | 实时开放词汇检测（YOLO 路线） |
+| LAE-DINO | 2024 | [笔记](/readings/2024/2024-08-17-lae) | 大规模数据+检测器 |
+| YOLOE | 2025 | [笔记](/readings/2025/2025-03-10-yoloe) | 统一三提示范式实时开放词汇检测 |
+| VLDet | 2026 | [笔记](/readings/2026/2026-01-31-vldet) | CLIP 特征金字塔适配 |
+| YOLOE-26 | 2026 | [笔记](/readings/2026/2026-02-03-yoloe-26) | 统一 Embedding 开放词汇检测 |
+| UAVBench | 2026 | [笔记](/readings/2026/2026-03-15-uavbench) | 低空 VL benchmark |
+| Seg2Change | 2026 | [笔记](/readings/2026/2026-04-12-seg2change) | 开放词汇变化检测 |
+| Falcon Perception | 2026 | [笔记](/readings/2026/2026-04-22-falcon-perception) | Early-fusion dense transformer |
+| Rex-Omni | 2026 | [笔记](/readings/2025/2025-10-14-rex-omni) | MLLM-based detection |
+| DisDop | 2026 | [笔记](/readings/2026/2026-05-23-disdop) | 域先验蒸馏 SOTA |
+| LocateAnything | 2026 | [笔记](/readings/2026/2026-05-26-locateanything) | VLM 并行框解码 |

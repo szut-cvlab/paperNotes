@@ -19,7 +19,7 @@
 
 ### 1.2 为什么需要单独做（而非复用卫星遥感模型）
 
-RemoteCLIP 的卫星图与无人机图混合训练已暴露问题（[RemoteCLIP 笔记](/readings/2023-06-19-remoteclip)）：
+RemoteCLIP 的卫星图与无人机图混合训练已暴露问题（[RemoteCLIP 笔记](/readings/2023/2023-06-19-remoteclip)）：
 
 1. **同名目标视觉特征冲突**：卫星图中 car 是小白点，无人机图中有清晰形状；B2C caption 都写"有 car"，但图像信号矛盾
 2. **观测角度根本不同**：卫星近正射（90°），无人机倾斜/低角度（30°-70°），几何变形导致视觉特征分布不同
@@ -444,14 +444,14 @@ RemoteCLIP 的 224×224 整图 resize 是已知硬伤——无人机图目标缩
 
 | 论文 | 年份 | 笔记 | 与本文关系 |
 |------|------|------|-----------|
-| RemoteCLIP | 2023 | [笔记](/readings/2023-06-19-remoteclip) | 直接前驱，image-level 对齐基线 |
+| RemoteCLIP | 2023 | [笔记](/readings/2023/2023-06-19-remoteclip) | 直接前驱，image-level 对齐基线 |
 | GLIP | 2022 | — | Region-text 对齐范式来源 |
-| Grounding DINO | 2023 | [笔记](/readings/2023-03-09-groundingdino) | 深度融合架构参考 |
-| YOLO-World | 2024 | [笔记](/readings/2024-01-30-yoloworld) | 轻量 OVD + region-text 对比预训练参考 |
-| VLDet | 2026 | [笔记](/readings/2026-01-31-vldet) | CLIP 多层级对比损失参考 |
-| CastDet | 2023 | [笔记](/readings/2023-11-20-casdet) | 首个航空 OVD |
-| LAE-DINO | 2024 | [笔记](/readings/2024-08-17-lae) | 大规模遥感检测数据+DVC |
-| DisDop | 2026 | [笔记](/readings/2026-05-23-disdop) | 当前低空 OVD SOTA，双编码器蒸馏思路 |
-| UAVBench | 2026 | [笔记](/readings/2026-03-15-uavbench) | 低空 VL benchmark + UAVIT-1M 数据源 |
-| Falcon Perception | 2026 | [笔记](/readings/2026-04-22-falcon-perception) | Early-fusion dense transformer 参考 |
+| Grounding DINO | 2023 | [笔记](/readings/2023/2023-03-09-groundingdino) | 深度融合架构参考 |
+| YOLO-World | 2024 | [笔记](/readings/2024/2024-01-30-yoloworld) | 轻量 OVD + region-text 对比预训练参考 |
+| VLDet | 2026 | [笔记](/readings/2026/2026-01-31-vldet) | CLIP 多层级对比损失参考 |
+| CastDet | 2023 | [笔记](/readings/2023/2023-11-20-casdet) | 首个航空 OVD |
+| LAE-DINO | 2024 | [笔记](/readings/2024/2024-08-17-lae) | 大规模遥感检测数据+DVC |
+| DisDop | 2026 | [笔记](/readings/2026/2026-05-23-disdop) | 当前低空 OVD SOTA，双编码器蒸馏思路 |
+| UAVBench | 2026 | [笔记](/readings/2026/2026-03-15-uavbench) | 低空 VL benchmark + UAVIT-1M 数据源 |
+| Falcon Perception | 2026 | [笔记](/readings/2026/2026-04-22-falcon-perception) | Early-fusion dense transformer 参考 |
 | DINOv3 | 2025 | arXiv 2508.10104 | 视觉编码器候选，密集特征极强+RoPE 原生高分辨率 |

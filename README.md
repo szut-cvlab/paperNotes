@@ -67,7 +67,7 @@ papers/
 - 文件名：`YYYY-MM-DD-<slug>.md`，`<slug>` 为论文短名小写连字符化（`remoteclip`、`uavgen`）
 - `readings/` 的日期 = 论文首次发表（arXiv v1）日期；`topics/` 的日期 = 专题撰写日期
 - 同一篇论文在三处的 slug 必须一致：`readings/2023-06-19-remoteclip.md` ↔ `raw/2023-06-19-remoteclip.pdf` ↔ `code/remoteclip/`
-- 笔记头部引用 `raw/` `code/` 里的文件时，写成行内代码而不是 markdown 链接，并注明"（本地文件，不随仓库分发）"；文件没下载到本地就整行省略，不留悬空路径
+- 笔记头部引用 `raw/` `code/` 里的文件时，写成行内代码而不是 markdown 链接
 
 ### 站点侧边栏的解析规则
 
@@ -122,7 +122,7 @@ papers/
 手动补一行索引时照抄这个格式：
 
 ```markdown
-- **04-28** [论文官方英文标题](/readings/2026-04-28-<slug>) — `tag1` `tag2` `tag3`
+- **04-28** [论文官方英文标题](/readings/2026/2026-04-28-<slug>) — `tag1` `tag2` `tag3`
 ```
 
 - 标题一律用官方英文原名（与笔记 H1 保持一致），不自拟中文翻译

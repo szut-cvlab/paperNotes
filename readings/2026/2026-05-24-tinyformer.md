@@ -1,7 +1,7 @@
 # TinyFormer: Preserving Tiny Objects in YOLO-DETR Hybrid Real-time Detectors
 
 - **来源**: https://arxiv.org/abs/2605.25046
-- **本地PDF**: `../raw/2026-05-24-tinyformer.pdf`（本地文件，不随仓库分发）
+- **本地PDF**: `../../raw/2026-05-24-tinyformer.pdf`
 - **日期**: 2026-05-24
 - **标签**: `yolo`, `detr`, `tiny object detection`, `real-time detection`
 - **研究方向**: 2D Object Detection → 小目标检测 → YOLO-DETR 混合架构
