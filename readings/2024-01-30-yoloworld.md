@@ -129,6 +129,19 @@ YOLO-World 重格式化为：(B_i, t_i)——框 + 文本（类别名、名词�
 | **CLIP-base** | **冻结** | **22.4** | **14.5** |
 | CLIP-base | 微调 | 19.3 | 8.6 |
 
+**CLIP-base vs BERT-base **：两者都是 12 层 Transformer 文本编码器，但**容量上 CLIP 反而更小**（BERT-base 110M / 768 维 / 512 token；CLIP ViT-B/32 文本塔 63M / 512 维 / 77 token），**差别不在参数而在预训练目标**——BERT 只做纯文本自监督（MLM），embedding 是纯语言空间，从未与任何图像对齐。YOLO-World 的分类就是"区域特征 × 文本嵌入"点积，文本嵌入必须活在视觉可比空间里：BERT 要靠有限的检测数据从零学这个跨模态映射，CLIP 直接继承 4 亿图文对的对齐知识。CLIP 冻结 > 微调：微调用小规模检测数据去动已对齐的空间，反而把零样本泛化练没了。
+
+**CLIP 文本塔是 GPT-2 风格的 Transformer**：输入就是 BPE 文本 token；**因果注意力**（causal mask，每个 token 只看左边），不像 BERT 双向：
+
+| | BERT-base | CLIP 文本塔 |
+|---|---|---|
+| 宽度 d | 768 | 512 |
+| 每层 ≈ 12d² | ~7.1M | ~3.1M |
+| 12 层合计 | ~85M | ~38M |
+| 词表嵌入 | 30.5k wordpiece → 23.4M | 49.4k BPE → 25.3M |
+| 位置嵌入 | 512×768 ≈ 0.4M | 77×512 ≈ 0.04M |
+| **总计** | **~110M** | **~63M** |
+
 结论：CLIP 文本编码器冻结效果最好（+10.1 AP_r vs BERT），微调反而退化。YOLOE 认为 CLIP 嵌入对齐不够好，加了可训练的 RepRTA 来精炼文本嵌入。
 
 #### Text Contrastive Head
