@@ -62,5 +62,6 @@
 
 ## 2020
 
+- **03-15** [Night-time Scene Parsing with a Large Real Dataset](/readings/2020/2020-03-15-nightcity) — `NTSP` `scene-parsing` `night-time` `semantic-segmentation` `dataset` `exposure`
 - **01-17** [Detection and Tracking Meet Drones Challenge](/readings/2020/2020-01-17-visdrone) — `drone` `object detection` `tracking` `benchmark` `VisDrone`
 - **01-01** [Object Detection in Remote Sensing Images Based on Improved Bounding Box Regression and Multi-Level Features Fusion](/readings/2020/2020-01-01-dior) — `remote-sensing` `object-detection` `dataset` `dior` `hbb`
