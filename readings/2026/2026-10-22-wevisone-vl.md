@@ -29,7 +29,7 @@
 
 **验证**: 30+ 基准，物体级与像素级均领先同规模 VLM：检测 LVIS 55.3 F1（vs LocateAnything-3B 50.7）、密集检测 Dense200 71.3（+12.6）、拒识 WeRef-Bench 96.4%（vs 最强基线 73.0）、ReasonSeg gIoU 71.2（超 LISA-13B）、P3M-500-NP 抠图 MAD 7.3（vs SAM2-Matting 15.4）。
 
-![WeVisOne-VL 统一物体级与像素级感知总览](../assets/wevisone-vl/teaser.webp)
+![WeVisOne-VL 统一物体级与像素级感知总览](../assets/2026-10-22-wevisone-vl/teaser.webp)
 
 ---
 
@@ -48,7 +48,7 @@
 
 数据源：GRIT、CC3M、LAION、SA-1B 及任务专用数据集；标注清单 **1 亿+ 图、约 36 亿框**。
 
-![WDE 数据引擎总览](../assets/wevisone-vl/wde_overview.webp)
+![WDE 数据引擎总览](../assets/2026-10-22-wevisone-vl/wde_overview.webp)
 
 ### 2.1 概念发现与定向采集
 
@@ -99,7 +99,7 @@
 
 **核心思想**: 受 Rex-Omni [41] 与 LocateAnything [104] 启发，引入 **`<0>`–`<1000>` 专用 token** 表示归一化坐标（词表扩展，见 Q&A Q1）。框 = `[x0,y0,x1,y1]`，点 = `[x0,y0]`；目标不存在时坐标字段填 **`None`**。像素级任务在每个框坐标四元组后（同一 `<box>` 字段内）额外生成一个 **`<OBJ>` token**，作为该实例的像素解码表征。
 
-![统一任务格式示例](../assets/wevisone-vl/task_formulation.webp)
+![统一任务格式示例](../assets/2026-10-22-wevisone-vl/task_formulation.webp)
 
 输出示例（论文 Figure 3）：
 
@@ -115,7 +115,7 @@ Seg/Matting: <ref>dogs</ref><box><81><327><394><746><OBJ>,<552><284><902><721><O
 
 推理流程：Qwen3-VL 视觉编码器编码图像 → 自回归生成结构化响应 → 每生成一个 `<OBJ>` token 就调用一次轻量解码器，输入 = 该 token hidden state + 预测框 + Qwen3-VL 视觉编码器多层特征。**从共享视觉特征取图像上下文、从预测框取空间引导，省掉 SAM**。解码器共 **9.6M 参数**，三个组件：
 
-![轻量像素解码器架构](../assets/wevisone-vl/pixel_decoder.webp)
+![轻量像素解码器架构](../assets/2026-10-22-wevisone-vl/pixel_decoder.webp)
 
 #### 3.2.1 视觉特征适配器（Visual Feature Adapter）
 
@@ -245,13 +245,13 @@ IoU **三次方**使奖励对高 IoU 区间的定位改进更敏感；分母同�
 
 **物体检测（Table 2）**——通用（COCO/LVIS）与密集小目标（Dense200/VisDrone，zero-shot）：
 
-![Table 2：物体检测结果](../assets/wevisone-vl/table2_detection.webp)
+![Table 2：物体检测结果](../assets/2026-10-22-wevisone-vl/table2_detection.webp)
 
 4B 全面领先同规模 VLM：COCO 57.1 / LVIS 55.3 / Dense200 71.3 / VisDrone 44.7（F1@Mean）；密集场景优势最大（Dense200 超 LocateAnything-3B **+12.6**），且 IoU=0.95 严格准则下仍领先，说明是"覆盖广 + 定位准"双提升。
 
 **指代检测与拒识（Table 3）**：
 
-![Table 3：指代检测结果（含拒识率）](../assets/wevisone-vl/table3_referring.webp)
+![Table 3：指代检测结果（含拒识率）](../assets/2026-10-22-wevisone-vl/table3_referring.webp)
 
 单目标、多目标、目标缺失三设定全面领先：RefCOCOg test 81.8（拒识 67.4）；自建 **WeRef-Bench**（2880 条中英文 query，含多目标与缺失查询）78.7 F1 / **96.4% 拒识率**，而 Rex-Omni/LocateAnything 拒识率仅 0.5%/73.0。这是论文最差异化的能力——**该拒的时候拒**。
 
@@ -263,7 +263,7 @@ IoU **三次方**使奖励对高 IoU 区间的定位改进更敏感；分母同�
 
 **抠图（Table 8）**——框/类别/指代三种 prompt 的可提示抠图：
 
-![Table 8：可提示抠图结果](../assets/wevisone-vl/table8_matting.webp)
+![Table 8：可提示抠图结果](../assets/2026-10-22-wevisone-vl/table8_matting.webp)
 
 框 prompt 下 P3M-500-NP MAD 7.3（2B 达 6.6，vs SAM2-Matting(SAM3) 15.4、Matte Anything 24.4）；语言 prompt 下优势拉得更大——WeRefMat 类别/指代 MAD 16.4/9.8，而 SAM2-Matting 系为 70.8/51.9、Qwen3.5-9B+SAM2-Matting 为 77.8/22.4。**语言条件目标选择 + 边界级 alpha 质量**同时成立，这是"像素解码器直接吃 `<OBJ>` 表征"路线的实证。
 

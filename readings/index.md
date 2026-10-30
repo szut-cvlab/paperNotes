@@ -20,7 +20,7 @@
 - **04-22** [Falcon Perception](/readings/2026/2026-04-22-falcon-perception) — `vlm` `open-vocabulary-segmentation` `early-fusion` `dense-detection`
 - **04-22** [CPL++: Confidence-aware Pseudo-label Self-Correction for Weakly Supervised Visual Grounding](/readings/2026/2026-04-22-cpl-plus-plus) — `visual-grounding` `weakly-supervised` `pseudo-label` `self-correction` `tpami2026`
 - **04-18** [FAA: Fourier Angle Alignment for Remote Sensing Oriented Object Detection](/readings/2026/2026-04-18-faa-fourier-angle-alignment) — `oriented-detection` `remote-sensing` `Fourier` `CVPR2026`
-- **04-16** [SkyFind: A Large-Scale Benchmark Unveiling Referring Expression Comprehension for UAV](/readings/2026/2026-04-16-skyfind)
+- **04-16** [SkyFind: A Large-Scale Benchmark Unveiling Referring Expression Comprehension for UAV](/readings/2026/2026-04-16-skyfind) — `REC` `UAV` `visual-grounding` `benchmark` `dataset` `tpami2026`
 - **04-12** [Seg2Change: Adapting Open-Vocabulary Semantic Segmentation Model for Remote Sensing Change Detection](/readings/2026/2026-04-12-seg2change) — `remote-sensing` `change-detection` `open-vocabulary` `segmentation`
 - **03-19** [EdgeCrafter: Compact ViTs for Edge Dense Prediction via Task-Specialized Distillation](/readings/2026/2026-03-19-edgecrafter) — `ViT` `edge` `knowledge distillation` `object detection` `pose estimation` `instance segmentation`
 - **03-15** [UAVBench and UAVIT-1M: Benchmarking and Enhancing MLLMs for Low-Altitude UAV Vision-Language Understanding](/readings/2026/2026-03-15-uavbench) — `MLLM` `low-altitude UAV` `benchmark` `instruction tuning` `vision-language`
