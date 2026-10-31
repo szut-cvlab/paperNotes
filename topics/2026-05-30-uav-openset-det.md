@@ -371,10 +371,14 @@ VisGT 消融：开集 +1.9% AP50，闭集 +2.3% AP50
 2. **路线 A：检索式开放词汇底座（低空还是空白）**。现状：没有低空版 CLIP/GLIP 范式底座（UAVIT-1M 走的是 MLLM 线）。要做就一次解决三件事——**区域级对齐**（从 RemoteCLIP 的 image-level 升级到 GLIP/WeDetect 的 region-text）、**编码器换血**（冻结 CLIP ViT 治不了俯视偏置：融合 DINOv3/EVA、高分辨率/切片，或直接学 WeDetect 换 ConvNeXt 层级骨干）、**数据核查**（UAVIT-1M 的 789k 图 + 框可用作 region-text 料，但逐源查穷尽标注，漏标=投毒负样本）。捷径：不从头训，拿 WeDetect 底座按官方开放词汇微调指南在目标域适配。
 3. **路线 B：MLLM 检测线**。Rex-Omni 证明 MLLM 可匹敌检测器但推理慢（且无置信度、算不了 mAP）；Falcon 的 early-fusion 是同问题的架构解；WeDetect-Ref 的"候选检索 + LLM 并行二分类"给第三条路（有置信度、能拒答）。配套：**GRPO 后训练专治密集场景行为缺陷**（重复预测/过大框，VisDrone 上实测 15.3%），对两条路线的生成式部件都适用。
 
-4. **数据构建参考**：
-- **训练数据**：学 LAE-1M 两路——已标注检测集统一格式拼用（**LAE 自身源是卫星/高空遥感，需替换成 VisDrone/DroneVehicle/MSSD 等低空集**）+ 无标注影像伪标扩词表；复用时改两点：伪标改 WeDetect 的 objectness 全召回（LAE 按面积取 top-K，小目标全漏），标签改自由文本层级描述（LAE 只有类名）。
-- **评测**：借 UAVBench 的"分项报分"思路，维度按 OVD 来——按目标尺度(小/中/大)、类别频次(common/rare)分别出分，不混成一个总 AP；UAVBench/UAVIT-1M 的标注是**指令-回答对（图+提问+回答，区域任务回答带框坐标），不是 (框, 类名) 检测标注**，不能训检测模型。
-- **两者都没做、你必须做**：测试数据从训练中留出（LAE 的测试集同时是训练数据）。
+4. **数据构建参考**（低空 OVD 数据：LAE-1M 思路 + UAVBench 数据源）：
+- **训练数据（学 LAE-1M 两路）**：
+  - **FOD（已标注检测集）**：取 UAVBench 聚合的 OD/SS/OT 检测标注（VisDrone/DroneVehicle/AU-AIR/HazyDet…），统一格式抽成 (框, 类名)；LAE 自身源是卫星/高空遥感，需替换成这些低空集。
+    - **切分协议（学 SkyFind 异源评测）**：挑几个数据集**整集留作评测**（其 train+test 都不进训练），其余数据集的 train+test **全进训练**。评测源与训练源不重叠，测的是跨数据集/跨场景泛化，避免"同源自家 test 类已在词表"的假 open-set。
+    - **留哪些作评测**：优先带分布偏移的源——可另引 SeaDronesSee（海洋场景，SkyFind 的 test 源）作异域评测，或用 UAVBench 已整集归评测的 RefDrone/MOD20；剩余源尽量保训练量（低空数据少）。
+    - **局限**：即便异源，类名仍可能跨集重叠（car/person 等通用类），泛化信号主要靠场景/域偏移而非类名 novelty，如实写明即可。
+  - **COD（无标注影像扩词表）**：无标注航拍图用 WeDetect 的 objectness 全召回打伪标（LAE 按面积取 top-K 会漏掉全部小目标），标签用自由文本层级描述（LAE 只有类名），补训练源没有的类。
+- **评测（借 UAVBench 分项报分）**：按目标尺度(小/中/大)、类别频次(common/rare)、**以及按留出的评测数据集分别出 AP**（每个整集留出的数据集即一个评测单元，天然覆盖不同域/相机/条件），不混成一个总 AP；UAVBench/UAVIT-1M 的标注是指令-回答对（图+提问+回答，区域任务回答带框坐标），不是 (框, 类名) 检测标注，不能训检测模型（RefDrone 的表达式文本可作 REC/Uni 的 query 来源）。
 
 ---
 
