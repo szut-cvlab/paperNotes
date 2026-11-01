@@ -1,34 +1,50 @@
-# paperNotes · 科研笔记
+<!-- title: 我是如何在 VSCode 中读论文的 -->
+<!-- digest: 我把读论文做成一条流水线，VSCode 里的 AI 助理负责精读、写完整解读、逐文件对照代码，我只核对事实和判断好坏。仓库开源，附完整六步工作流。 -->
 
-一个面向个人科研的论文阅读与专题调研知识库，内容以 Markdown 维护，用 VitePress 渲染成静态站点。
+读一篇论文，过去我要耗掉大半天。下载 PDF，逐段啃公式，抄进笔记，再手动整理成文档。
 
-覆盖方向：实时目标检测（YOLO / DETR 系）、遥感与低空无人机视觉、开放词汇与视觉-语言预训练模型。
+现在这套流程，我交给了 VSCode 里的一个 AI 助理。
 
-仓库地址：<https://github.com/szut-cvlab/paperNotes>
+从取原文到落成笔记，它都先做完，我只核对事实、挑出值得留的部分。
 
----
+<!-- 封面图待生成，定稿后放这里 -->
 
-## 项目简介
+## 0. 准备工作
 
-这个仓库把"读论文"这件事拆成了四条独立的产出线，各自对应一个目录：
+跑这套流程先装两样东西。
 
-| 目录 | 内容 | 产出形态 |
-|---|---|---|
-| `readings/` | 单篇论文的深度解读 | 逐章节复述原文结构 + 个人评价 + Q&A |
-| `topics/` | 跨论文的专题综述 | 数据集横向对比、方法演进梳理 |
-| `arxiv-daily/` | 每日 cs.CV 新论文速览 | 关键词命中 + 推荐度分级 + 中文摘要 |
-| `top-conferences/` | 顶会（如 CVPR）论文分任务整理 | 按 task 分组的论文清单与推荐理由 |
+**第一步**在 VSCode 里装 CodeBuddy 插件，它就是干活的那个 AI 助理。
 
-内容生产是"AI 助理 + 人工确认"的流水线：采集脚本抓取原始数据 → LLM 打分和写摘要 → 人工挑选 → 落成 Markdown → 注册索引 → 提交。
+![图片](https://oss.qlcloud.top/gzhhub/draft-images/ftcnUyZo-fNLkn4t9-20261101213518370.jpg)
 
-站点由 VitePress 驱动，**侧边栏从各目录的 `index.md` 自动解析生成**，所以新增内容后必须同步注册索引，否则导航里看不到（见「后续怎么加内容」）。
+**第二步**装 skills。我把这些能力打包放在另一个仓库，一条命令能全装上。
 
----
+> skills 仓库：https://github.com/hougeai/skills
 
-## 目录结构
+```bash
+npx skills add hougeai/skills
+```
+
+这条命令原生支持 CodeBuddy，装的时候会自动软链到 `~/.codebuddy/skills/`。不用你自己手动建链接。
+
+只想装某一个，加 `--skill` 指定名字，`-g` 装成全局。
+
+```bash
+npx skills add hougeai/skills --skill gzh-hub
+```
+![图片](https://oss.qlcloud.top/gzhhub/draft-images/ftcnUyZo-fNLkn4t9-20261101213352239.png)
+后面每一步用到的工具都从这里来，比如取 arXiv 原文的 `deepxiv`、写公众号的 `gzh-writer-cv`，都在里面。
+
+## 1. 先 fork 一个仓库
+
+这套东西我开源在 GitHub。
+
+> https://github.com/szut-cvlab/paperNotes 
+
+你 fork 一份到自己的账号下，就能拿到完整的目录结构和配置。
 
 ```
-papers/
+paperNotes/
 ├── index.md                  # 站点首页（VitePress home layout，手工维护）
 ├── package.json              # 依赖与脚本
 ├── .vitepress/
@@ -39,22 +55,17 @@ papers/
 ├── readings/                 # 单篇论文解读
 │   ├── index.md              # 索引（侧边栏数据源，新增笔记必须注册）
 │   ├── template.md           # 解读模板（纯论文）
-│   ├── template-with-article.md  # 模板（论文 + 公众号推文）
 │   └── YYYY-MM-DD-<slug>.md
-│
 ├── topics/                   # 专题调研
 │   ├── index.md
 │   └── YYYY-MM-DD-<slug>.md
-│
 ├── arxiv-daily/              # 每日 arXiv 速览
 │   ├── index.md
 │   ├── 2026.md               # 年度归档正文
 │   └── digest-YYYY-MM-DD.json # 原始抓取结果（gitignored）
-│
 ├── top-conferences/          # 顶会整理
 │   ├── index.md
 │   └── cvpr-2026.md
-│
 └── raw/ code/ references/ gzh/   # 本地工作区，均不入库
     ├── raw/          # 论文 PDF 与 LaTeX 源码
     ├── code/         # 论文配套开源代码
@@ -62,140 +73,191 @@ papers/
     └── gzh/          # 公众号推文成稿
 ```
 
-### 命名规范
+整个知识库用 Markdown 维护，我把读论文这件事拆成了四条独立的线。
 
-- 文件名：`YYYY-MM-DD-<slug>.md`，`<slug>` 为论文短名小写连字符化（`remoteclip`、`uavgen`）
-- `readings/` 的日期 = 论文首次发表（arXiv v1）日期；`topics/` 的日期 = 专题撰写日期
-- 同一篇论文在三处的 slug 必须一致：`readings/2023-06-19-remoteclip.md` ↔ `raw/2023-06-19-remoteclip.pdf` ↔ `code/remoteclip/`
-- 笔记头部引用 `raw/` `code/` 里的文件时，写成行内代码而不是 markdown 链接
+- `readings` 放单篇论文的深度解读，逐章节复述原文，后面附个人评价和一问一答。
+- `topics` 放跨论文的专题综述，比如数据集横向对比、方法演进梳理。
+- `arxiv-daily` 定时任务抓 `cs.CV` 的新论文，按关键词命中，给推荐度分级，写中文摘要。
+- `top-conferences` 自动化采集历年顶会论文，根据感兴趣的研究方向，分组整理。
 
-### 站点侧边栏的解析规则
+这四条线最后都汇到同一个 VitePress 静态站。
 
-`.vitepress/config.js` 里有三个解析函数，规则不同，写索引时别混：
+侧边栏不用手写，由每个目录的索引文件自动解析生成。
 
-- `parseIndexSidebar()` → `/readings/`
-  按 `## YYYY` 分组，条目必须严格匹配 `- **MM-DD** [标题](链接)`，漏写或格式不对**不会报错，只会静默不显示**
-- `parseFlatList()` → `/topics/`、`/top-conferences/`
-  匹配任意 `- [标题](链接)`，可带 `— 概要` 后缀
-- `parseYearFiles()` → `/arxiv-daily/`
-  扫描 `arxiv-daily/` 下的 `YYYY.md` 自动生成年度归档列表，**新增年度文件不用改配置**
+## 2. AI 起草，我只做确认
 
-### 链接写法
+内容生产是一条 AI 加人的流水线。
 
-站内链接写 `/readings/2026-05-10-hsgdet` 还是 `/readings/2026-05-10-hsgdet.md`，**两种都能正常渲染**。VitePress 的 `normalizeLink` 会把内部链接的 `.md` 去掉、补上 `.html`，正文里的 markdown 链接和侧边栏条目都走这套逻辑。
+采集脚本抓原始数据，大模型写摘要，我挑值得读的，最终落成 Markdown。
 
-仓库统一用不带 `.md` 的写法，只是为了跟 `readings/index.md`、`topics/index.md` 里的既有条目保持一致，不是功能上的必须。真要统一成另一种，改索引时批量替换即可，不会有渲染问题。
+我把一条原则写死在 agent 配置里。凡是可能为假的内容，都要能指回原文的某一句或某个表格单元格。
 
-另外：如果哪天在 `config.js` 里开了 `cleanUrls: true`，链接会自动变成无扩展名形式（`/readings/2026-05-10-hsgdet`），源码里怎么写都会归一化到同一种。
+数字和结论必须能溯源。写进笔记前，**必须拿 LaTeX 源码核对**，论文没写的就删掉。
 
----
+连出处也不许凭记忆写。
 
-## 技术栈
+会议名和 arXiv 编号，还有数据集规模，落笔前都要当场核实。
 
-| 组件 | 版本 | 用途 |
-|---|---|---|
-| [VitePress](https://vitepress.dev/) | ^1.6.4 | 静态站点生成、主题、搜索 |
-| markdown-it-mathjax3 | ^4.3.2 | 行内 `$...$` 与块级 `$$...$$` 公式渲染 |
-| Node.js | v24.12.0（本地验证版本） | 运行环境，`package.json` 未写死 `engines` |
-| npm | 11.6.2 | 包管理，lockfile v3，registry 指向 npmmirror |
+## 3. 一套写死的六步工作流
 
-- 站点配置全部集中在 `.vitepress/config.js`，包含 nav、sidebar、local search、公式开关
-- 内容是纯 Markdown，没有数据库、没有后端，构建产物就是静态文件
-- **没有 CI**：仓库里没有 `.github/workflows`，任何构建/发布都需要手动触发
-- **采集脚本不在本仓库**：抓取逻辑在仓库外的 `skills/` 目录（已被 `.gitignore` 忽略），本仓库只存放产出结果
+读单篇论文的流程，我写进了一个自定义 agent，名字就叫 `paperNotes`。
 
----
+> 定义在：https://github.com/szut-cvlab/paperNotes/blob/master/.codebuddy/agents/paperNotes.md
 
-## 后续怎么加内容
+丢给它一篇论文，它**自动**走完六步。
 
-### 方式一：加一篇论文解读（最常用）
+**Step 1 识别输入**
 
-助手 `.codebuddy/agents/paperNotes.md` 已把流程写死，直接对助手说"解读 arXiv 2601.xxxxx"即可，它会走完六步：
+先分清手头是哪种来源，arXiv 链接直接进下一步，本地 PDF 跳过下载。
 
-1. **识别输入** — arXiv ID / 论文标题 / 本地 PDF / 公众号链接 / GitHub 仓库，各有对应的取原文方式
-2. **获取原文** — arXiv 走 `deepxiv` skill 下 PDF + LaTeX；GitHub 仓库 clone 到 `code/`；官方博客存档到 `references/`
-3. **精读原文** — 优先读 LaTeX 源码（公式不失真），PDF 用 `pdftotext -layout` 转文本分段读
-4. **写解读** — 严格套 `readings/template.md`，公式用 `$$...$$`（不要放代码块），实验数字标注出处（如 Table 1）
-5. **注册索引** — 在 `readings/index.md` 对应年份下**倒序**插入一行
-6. **公众号推文** — 可选，需你明确要求并确认推文标题
+只有关键词时先搜出候选再确认目标，公众号文章只当线索，还要顺着里面的链接回溯一手来源。
 
-手动补一行索引时照抄这个格式：
+**Step 2 获取原文**
 
-```markdown
-- **04-28** [论文官方英文标题](/readings/2026/2026-04-28-<slug>) — `tag1` `tag2` `tag3`
+按来源优先级取一手资料，arXiv 最高，其次是官方技术报告和博客，最后是公众号文章。
+
+arXiv 走 `deepxiv` 这个 skill，它会自动把 PDF 和 LaTeX 源码下到 `raw/`。
+
+GitHub 仓库直接 clone 到 `code/`，官网博客抓下来存进 `references/`。
+
+**Step 3 精读原文**
+
+优先读 LaTeX 源码，公式不会失真，PDF 得先用 `pdftotext` 转成文本再分段读。
+
+有开源代码时，还要对照关键超参和损失函数。
+
+**Step 4 写笔记**
+
+产出落到 `readings/`，严格按模板走，章节标题只在专有名词处保留英文。
+
+每个实验数字都标出来自哪张表，重要公式对着 LaTeX 完整抄录，关键结果表截图入仓。
+
+**Step 5 建立索引**
+
+这一步最容易漏，笔记写完要在 `readings/index.md` 里按日期倒序补上一行。
+
+站点侧边栏靠解析这个文件自动生成，条目格式得严格按模板。
+
+少一个星号或者链接写错，构建不报错，但结果是这篇笔记在导航里凭空消失。
+
+**Step 6 改写推文**
+
+这是可选的一步，加载 `gzh-writer-cv` 这个 skill，把整篇解读当素材，改写成公众号推文。
+
+它会先出几个标题候选等我挑，成稿推到草稿箱。
+
+## 4. 模板长什么样
+
+写笔记有固定的模板，不靠 AI 自由发挥。
+
+骨架大概长这样。
+
+```text
+# 论文官方英文标题
+
+元信息：来源 / 日期 / 标签 / 作者 / 会议 / 代码链接
+
+## 摘要
+问题 → 方案 → 关键创新 → 验证
+
+## 正文
+跟着论文原章节走，Abstract 到 Conclusion 一级都不缺
+
+## 个人评价
+核心价值 / 可借鉴点 / 实验设计亮点
+
+## Q&A
+读论文时冒出的疑问和解答
+
+## 代码解读（只有开源了才加）
+仓库结构 / 怎么跑通 / 和论文对不上的地方
 ```
 
-- 标题一律用官方英文原名（与笔记 H1 保持一致），不自拟中文翻译
-- 链接不带 `.md` 后缀（仓库惯例；VitePress 两种写法都能正常渲染，见下文「链接写法」）
-- 标签取自笔记头部的 `**标签**` 字段
-- 追加位置是年份小节内**日期倒序**，同一天按文件名排
+> 模板原文：https://github.com/szut-cvlab/paperNotes/blob/master/readings/template.md
 
-### 方式二：加一篇专题调研
+## 5. 对照代码，挖出论文没写的东西
 
-在 `topics/` 下新建 `YYYY-MM-DD-<slug>.md`，然后在 `topics/index.md` 追加一行：
+很多论文配了开源代码。
 
-```markdown
-- [中文专题标题](/topics/2026-04-12-<slug>) — 一句话概要
-```
+我会让 agent 把仓库 clone 到本地，逐文件去读，边读边跟论文正文的公式和步骤对齐。
 
-专题内容建议结构：问题定义与背景 → 相关工作（含演进树、横向对比表）→ 方法与实验 → 结论。
+这一步经常挖出论文里根本没有的细节。
 
-### 方式三：加一份日报 / 顶会整理
+比如，最近读的一篇 grounding 模型，论文没写分割损失和语言损失怎么加权。
 
-- 日报：原始结果落在 `arxiv-daily/digest-YYYY-MM-DD.json`（不入库），确认后把当天内容追加到 `arxiv-daily/2026.md` 的对应日期小节
-  - 小节内条目编号从 1 连续排
-  - 小节头写「今日 cs.CV 共 N 篇论文，命中 X 篇，收录 Y 篇」，收录数小于命中数时**必须显式写出**，否则看不出当天的归档是否完整
-- 顶会：编辑 `top-conferences/cvpr-2026.md`，并在 `top-conferences/index.md` 登记
+AI 去读它的训练配置，在里面找到了具体的权重值。
 
-### 提交前检查清单
+这些藏在代码里的事实，只读 PDF 永远拿不到。
 
-- [ ] 索引已注册，刷新站点后能在侧边栏看到新条目
-- [ ] 笔记中的公式能正常渲染（`$$` 块公式，不在代码块里）
-- [ ] 内部链接用相对路径且指向真实存在的文件
-- [ ] 笔记里引用 `raw/` `code/` 的地方写的是行内代码而不是链接，没有悬空路径
-- [ ] `raw/` `code/` `digest-*.json` 等中间产物没有被 `git add` 进去
+<!-- 可补一张代码对照截图，待生成 -->
 
----
+## 6. 写作规范
 
-## 开发和部署
+踩过的坑，我都写成了规则。
 
-### 本地开发
+- 专有名词不做生硬翻译，`grounding`、`patch grid` 这类术语直接留着英文。
+- 已经有表格截图的地方，正文只给结论，不再复述每个数字。
+- 括号和破折号能少用就少用，别把句子写成翻译腔的电报体。
+
+这些规则都是踩过坑之后才写进配置的。换一个 agent 跑同样的任务，也不会重犯我犯过的错。
+
+## 7. 从笔记到推文，一键出稿
+
+笔记写完，对于有分享价值的论文，我还会用 `gzh-writer-cv` 这个 skill 把它改写成公众号推文。
+
+它自带一套本号的写作规范和机器自检脚本。
+
+脚本会挑出带 AI 味的句子、过长的段落，还有没溯源的数字，逐条回改。
+
+推文结构沿用解读的章节，配图直接复用解读阶段备好的图。
+
+成稿先推送到公众号草稿箱，正式发布还是在后台点。
+
+整条链路从一篇论文 PDF，走到一篇能发的推文，中间我插手的只有确认和改错。
+
+## 8. 从本地到公网
+
+### 8.1 本地开发
+
+Markdown 写完只是一堆文件，先在本地跑起来看效果。
 
 ```bash
 npm install
-npm run docs:dev      # 本地预览，默认 http://localhost:5173
+npm run docs:dev
 ```
 
-### 构建与本地预览产物
+浏览器打开 http://localhost:5173，改一处笔记刷新就能看到。
 
-```bash
-npm run docs:build    # 输出到 .vitepress/dist
-npm run docs:preview  # 预览构建结果
-```
+这个预览只在你本机，别人访问不到。
 
-`dist/` 目录是纯静态文件，可直接托管到任意静态平台。
+### 8.2 部署上线
 
-### 部署方式
-
-仓库当前没有配置 CI，以下任选其一：
-
-**A. 本地构建 + 推送到托管平台**
+要给外人看，换成构建命令。产物是一堆纯静态文件，落在 `.vitepress/dist` 目录。
 
 ```bash
 npm run docs:build
-# 之后把 .vitepress/dist 交给任意静态托管
 ```
 
-**B. GitHub Pages（加一个 workflow）**
+有个坑。站点默认按域名根路径部署。
 
-在 `.github/workflows/deploy.yml` 里跑 `npm ci && npm run docs:build`，把 `dist` 交给 `actions/deploy-pages`，仓库 Settings → Pages 选择 GitHub Actions 即可。
+要挂到子路径，就得在 `config.js` 里补一个 `base`，否则静态资源全部 404。
 
-**C. 云平台静态托管**
+这个目录丢给任意静态托管都能跑，比如挂 GitHub Pages、Vercel 或 Netlify。
 
-`.gitignore` 里预留了 `.edgeone/*`、`.tef_dist/*`，说明这套内容此前按腾讯云 EdgeOne 的静态托管方式部署过；换平台时改对应配置即可。
+我用的是腾讯云的 EdgeOne Makers，绑了一个自定义域名：
 
-### 部署注意事项
+> 线上站点：https://papers.015j.cn/
 
-- `config.js` 里 `base` 未设置，默认部署在域名根路径。部署到子路径（如 `https://user.github.io/paperNotes/`）必须加上 `base: '/paperNotes/'`，否则静态资源全部 404
-- `ignoreDeadLinks: true` 已开启，站内失效链接不会中断构建，但失效链接也不会被提醒
-- 站点有两份导航配置：`index.md` 的 hero/actions 按钮和 `config.js` 的 nav。改导航要两处同时改
+![图片](https://oss.qlcloud.top/gzhhub/draft-images/ftcnUyZo-fNLkn4t9-20261101213932881.jpg)
+
+## 写在最后
+
+这套东西的价值，是把论文阅读流程中，机械重复的工作交给 AI。
+
+当然，判断和决策，还得你来。
+
+这套仓库和 agent 配置全部开源，可以直接 fork 去跑你的方向。
+
+> 欢迎关注「视觉与低空智能」，专注 CV、VLM 与低空智能的交叉领域。
+> 一线工程师视角，读论文，也拆开源项目，顺带讲低空场景怎么落地。
+
