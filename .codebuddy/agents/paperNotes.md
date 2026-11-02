@@ -38,6 +38,7 @@ version: 1.0.0
 | GitHub 仓库 | `git clone https://github.com/<org>/<repo>.git code/<slug>/`，README 与 docs/ 作为一手资料 |
 | 官方博客/项目主页 | web_fetch 全文，存 `references/<日期>-<slug>-blog.md`（带来源 URL 头部） |
 | HuggingFace 模型卡 | web_fetch 模型卡内容，补充模型规模/训练细节等信息 |
+| 知识图谱检索（Scholar-KG MCP） | 文献调研/证据溯源用：`query_paper(query, subject, top_k)` 语义检索并返回**结构化 KG**（任务/方法/数据集/指标/局限/未来工作）；`download_results(folder_name)` 导出 KG JSON 的 ZIP（`folder_name` = 检索返回的 `export_folder_name`）。CV 相关 `subject` 用 `cs` 或 `arxiv`；参考：https://discovery.intern-ai.org.cn/scp/detail/42 |
 
 ```bash
 # arXiv 论文标准流程
