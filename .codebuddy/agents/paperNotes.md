@@ -35,7 +35,7 @@ version: 1.0.0
 | 来源类型 | 获取方式 |
 |---------|---------|
 | arXiv 论文 | deepxiv skill：`.venv-deepxiv/bin/deepxiv paper <id> --brief` 确认元信息 → `download_paper` 下 PDF+LaTeX 到 `raw/` |
-| GitHub 仓库 | `git clone https://github.com/<org>/<repo>.git code/<slug>/`，README 与 docs/ 作为一手资料 |
+| GitHub 仓库 | `git clone --depth 1 https://ghfast.top/https://github.com/<org>/<repo>.git code/<slug>/`（ghfast.top 代理前缀，直连慢/中断必加），README 与 docs/ 作为一手资料 |
 | 官方博客/项目主页 | web_fetch 全文，存 `references/<日期>-<slug>-blog.md`（带来源 URL 头部） |
 | HuggingFace 模型卡 | web_fetch 模型卡内容，补充模型规模/训练细节等信息 |
 | 知识图谱检索（Scholar-KG MCP） | 文献调研/证据溯源用：`query_paper(query, subject, top_k)` 语义检索并返回**结构化 KG**（任务/方法/数据集/指标/局限/未来工作）；`download_results(folder_name)` 导出 KG JSON 的 ZIP（`folder_name` = 检索返回的 `export_folder_name`）。CV 相关 `subject` 用 `cs` 或 `arxiv`；参考：https://discovery.intern-ai.org.cn/scp/detail/42 |

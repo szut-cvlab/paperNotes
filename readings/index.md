@@ -7,10 +7,12 @@
 ## 2026
 
 - **10-22** [WeVisOne-VL: Unified Visual Perception from Objects to Pixels](/readings/2026/2026-10-22-wevisone-vl) — `vlm` `object-detection` `segmentation` `matting` `rejection` `data-engine` `grpo` `open-source`
+- **09-30** [GroundingPI: A Grounding Foundation Model towards Physical Intelligence with Visual Primitives](/readings/2026/2026-09-30-groundingpi) — `grounding` `foundation-model` `vlm` `coordinate-token` `grpo` `data-engine` `physical-intelligence` `open-source`
 - **10-16** [Xiaomi-Lens-0 Technical Report](/readings/2026/2026-10-16-xiaomi-lens-0) — `MLLM` `visual-grounding` `reasoning-segmentation` `region-understanding` `mask-supervision`
 - **10-16** [VLX-Seek: Improving VLM Fine-Grained Perception via Region Reference Instead of Coordinate Generation](/readings/2026/2026-10-16-vlx-seek) — `vlm` `grounding` `region-token` `referring-expression` `embodied-vision` `edge-deployment` `open-source`
 - **10-14** [WinARDet: Compressed Window Auto-Regression for Long-Horizon Vision-Language Grounding](/readings/2026/2026-10-14-winardet) — `mllm` `autoregressive-detection` `dense-scene` `grounding` `remote-sensing` `history-compression`
 - **07-22** [SkyAnchor: Memory-Augmented MLLM for Small Object Understanding in Streaming Aerial Videos](/readings/2026/2026-07-22-skyanchor) — `small object` `aerial video` `streaming` `MLLM` `memory-augmented` `referring segmentation`
+- **07-13** [Confidence Scores in Open-Vocabulary Detection Are a Biased Mixture of Scale and Semantics](/readings/2026/2026-07-13-ovd-confidence-bias) — `open-vocabulary detection` `confidence calibration` `scale bias` `small object` `diagnosis`
 - **07-02** [UAVGen: Visual Prototype Conditioned Focal Region Generation for UAV-Based Object Detection](/readings/2026/2026-07-02-uavgen) — `uav-detection` `diffusion` `small-object` `data-augmentation` `layout-to-image`
 - **05-26** [LocateAnything: Fast and High-Quality Vision-Language Grounding with Parallel Box Decoding](/readings/2026/2026-05-26-locateanything) — `open-vocabulary detection` `visual grounding` `parallel decoding` `VLM` `MTP`
 - **05-24** [TinyFormer: Preserving Tiny Objects in YOLO-DETR Hybrid Real-time Detectors](/readings/2026/2026-05-24-tinyformer) — `yolo` `detr` `tiny object detection` `real-time detection`
