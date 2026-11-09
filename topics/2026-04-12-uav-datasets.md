@@ -52,7 +52,7 @@
 | **发布机构** | 大连理工大学 |
 | **数据规模** | ~80,000 帧 (10小时视频) |
 | **标注数量** | 835,879 个目标 |
-| **类别** | car, vehicle, truck, bus |
+| **类别** | 3 类：car, truck, bus（CODrone 论文 Table I 口径，早前写法含 vehicle 有误） |
 | **特点** | 包含14种属性标注：天气、高度、视角、遮挡程度等 |
 
 **官方划分**：
@@ -70,7 +70,7 @@
 | 项目 | 内容 |
 |------|------|
 | **特点** | **多模态** 数据集 (RGB + 红外) |
-| **数据规模** | 30,000+ 图像对 |
+| **数据规模** | 28,400 对（56,800 张图，RGB + IR 各一张） |
 | **任务** | 跨模态车辆检测、夜间检测 |
 | **应用** | 车牌检测、车辆属性识别 |
 
@@ -113,8 +113,71 @@
 
 | 项目 | 内容 |
 |------|------|
-| **场景** | 城市交通分析 |
-| **特点** | 专注车辆检测 |
+| **全称** | UTUAV: A Drone Dataset for Urban Traffic Analysis |
+| **论文** | Drones 2026, 10(1), 15（DOI 10.3390/drones10010015） |
+| **数据规模** | 两个子集，UTUAV-B 6,500 图、UTUAV-C 6,600 图，均 3840×2160 |
+| **拍摄条件** | B 约 100 m 高度拍一个路口，C 约 120 m 拍一个大环岛，均在哥伦比亚麦德林，各子集只有一个固定机位 |
+| **类别** | 3 类：motorcycle、car（light vehicle）、heavy vehicle（bus/truck） |
+| **标注量** | UTUAV-C 约 148 万框，但去重后实际目标约 1,000 辆车、456 辆摩托、467 辆大车，框数由相邻帧重复撑起 |
+| **发布** | videodatasets.org 提供 |
+
+---
+
+### 7. AU-AIR
+
+| 项目 | 内容 |
+|------|------|
+| **全称** | AU-AIR: A Multi-modal Unmanned Aerial Vehicle Dataset for Low Altitude Traffic Surveillance |
+| **数据规模** | 32,823 帧从 8 小时视频抽帧，1920×1080 |
+| **标注数量** | 约 132K 个框 |
+| **类别** | 8 类：person、car、van、truck、bus、motorbike、bicycle、trailer |
+| **附带信息** | 逐帧飞行高度、天气、GPS 等传感器元数据 |
+
+---
+
+### 8. HazyDet
+
+| 项目 | 内容 |
+|------|------|
+| **全称** | HazyDet: Open-Source Benchmark for Drone-View Object Detection with Depth-Cues in Hazy Scenes |
+| **数据规模** | 11.6K 图 / 383K 框，1333×800 |
+| **类别** | 3 类：car、truck、bus |
+| **构成** | 11k 张在清晰图上合成加雾，600 张真实雾天 |
+
+---
+
+### 9. UAV-ROD
+
+| 项目 | 内容 |
+|------|------|
+| **数据规模** | 1,577 图（1,150 训 / 427 测）/ 30,090 个车实例 / 1920×1080，OBB 标注 |
+| **拍摄条件** | 飞行高度 30–80 m，城市道路与停车场 |
+| **类别** | 1 类：car |
+
+---
+
+### 10. ATR-UMOD
+
+| 项目 | 内容 |
+|------|------|
+| **全称** | Fusion Meets Diverse Conditions: A High-diversity Benchmark and Baseline for UAV-based Multimodal Object Detection with Condition Cues |
+| **出处** | ICCV 2025，RGB 与红外成对 |
+| **数据规模** | 13,353 对 RGB-IR（11,850 训 / 1,503 测），640×512，161,799 个 RGB 目标，OBB 标注 |
+| **拍摄条件** | 高度 80–300 m，观测角 0–75°，覆盖全天候与多天气，每对图另标 6 个条件属性 |
+| **类别** | 11 类车辆：car、SUV、van、bus、freight car、truck、motorcycle、trailer、excavator、crane、tank truck |
+
+---
+
+### 11. RGBT-Tiny
+
+| 项目 | 内容 |
+|------|------|
+| **全称** | Visible-Thermal Tiny Object Detection: A Benchmark Dataset and Baselines |
+| **出处** | TPAMI 2025（47(7):6088–6096） |
+| **数据规模** | 115 对序列 / 93K 帧 / 1.2M 人工标注，RGB 1080×1920 配红外 512×640，带跟踪 ID（跟踪基准） |
+| **类别** | 7 类：ship、car、cyclist、pedestrian、bus、drone、plane |
+| **采集条件** | 大疆 Mavic 2 双镜头，60–100 m 高度，覆盖 8 类光照与密度场景 |
+| **特点** | 81% 以上目标小于 16×16；每序列约 808 帧、54 秒，相邻帧仅差 1/15 秒 |
 
 ---
 

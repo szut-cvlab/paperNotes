@@ -168,7 +168,7 @@ if text_self_attention_masks.shape[1] > self.max_text_len:  # max_text_len=256
 
 **关键**：
 - 训练：论文说 "we randomly sampled category names from all categories in a dataset on the fly during training"（第315行），同时第40行说 "GLIP's approach involves concatenating all categories into a sentence in a random order"。对于 COCO（80 类 ≈ 192 token，不超 256），应该是**全部类别拼入、顺序随机**；对于 O365（365 类 ≈ 1390 token，超 256），则是**GT 类别全部保留 + 负类别随机采样**，否则无法训练（GT 类别不在 caption 中就没法算分类 loss）。LAE-DINO 的 DVC 做法一样，只是明确了固定选 60 个类别
-- 推理：把数据集所有类别拼成 caption。COCO 80 类 ≈ 192 token，一次推理即可。LVIS 1203 类远超 256 token，论文和代码均未说明如何处理，模型层面超过 256 直接截断
+- 推理：把数据集所有类别拼成 caption。COCO 80 类 ≈ 192 token，一次前向即可；LVIS 1203 类远超 256 token，实际评测按块切分（常见 chunk=40 类，40 类约 200–240 token），1203 类需 31 次前向，各块分数按类合并。论文未交代切块细节，做法见 WeDetect 对 GDINO 的测速记录
 
 ### 3.5 Loss Function
 
@@ -220,7 +220,7 @@ class ContrastiveEmbed:
 
 **Grounded Pre-Training 数据**：
 - Objects365（365 类，O365v1 ~60 万图，O365v2 ~170 万图）
-- GoldG（Flickr30k Entities + Visual Genome 的区域-文本对，约 80k 图）
+- GoldG（Flickr30k Entities + Visual Genome 的区域-文本对）。名字出自 GLIP，MDETR 原文未用此名；MDETR 的数据是 1.3M 图文对 / 200K 图，源含 Flickr30k、COCO、VG、GQA、RefCOCO。GLIP 称其中 0.8M 条为人工 grounding 数据并剔除 COCO 图像，0.8M 的单位原文未明说（图数只有 250K 量级，应为标注对）；GDINO 按附录只用 Flickr30k 与 VG 两个图像源。GoldG 不含 COCO，COCO 属于检测数据，只出现在 L 配置；另有一条脚注自认 RefC 含 COCO val 的图像，L 用了 RefC 即存在图像泄漏
 - Cap4M（400 万图文对）
 - OpenImages/OI（~170 万图，检测数据）
 - COCO Captions（~12 万图）

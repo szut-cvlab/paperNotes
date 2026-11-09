@@ -6,6 +6,7 @@
 
 ## 2026
 
+- **11-04** [Annotator-Free Object Detection via Foundation Model Collaboration](/readings/2026/2026-11-04-annotator-free-det) — `object-detection` `annotation-free` `pseudo-labeling` `SAM` `CLIP` `LVLM` `open-vocabulary` `data-engine`
 - **10-22** [WeVisOne-VL: Unified Visual Perception from Objects to Pixels](/readings/2026/2026-10-22-wevisone-vl) — `vlm` `object-detection` `segmentation` `matting` `rejection` `data-engine` `grpo` `open-source`
 - **09-30** [GroundingPI: A Grounding Foundation Model towards Physical Intelligence with Visual Primitives](/readings/2026/2026-09-30-groundingpi) — `grounding` `foundation-model` `vlm` `coordinate-token` `grpo` `data-engine` `physical-intelligence` `open-source`
 - **10-16** [Xiaomi-Lens-0 Technical Report](/readings/2026/2026-10-16-xiaomi-lens-0) — `MLLM` `visual-grounding` `reasoning-segmentation` `region-understanding` `mask-supervision`
