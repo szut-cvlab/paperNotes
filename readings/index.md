@@ -59,6 +59,7 @@
 
 - **11-21** [GeoText-1652: Towards Natural Language-Guided Drones](/readings/2023/2023-11-21-geotext1652) — `text-image-retrieval` `uav` `drone` `benchmark` `spatial-relation` `vision-language`
 - **11-20** [CastDet: Toward Open Vocabulary Aerial Object Detection with CLIP-Activated Student-Teacher Learning](/readings/2023/2023-11-20-casdet) — `open-vocabulary detection` `student-teacher` `CLIP` `aerial detection` `pseudo-label`
+- **11-08** [NExT-Chat: An LMM for Chat, Detection and Segmentation](/readings/2023/2023-11-08-next-chat) — `LMM` `视觉定位` `pix2emb` `区域理解` `指代分割` `SAM`
 - **06-19** [RemoteCLIP: A Vision Language Foundation Model for Remote Sensing](/readings/2023/2023-06-19-remoteclip) — `vision-language model` `remote sensing` `CLIP` `data scaling` `zero-shot`
 - **03-16** [Large Selective Kernel Network for Remote Sensing Object Detection](/readings/2023/2023-03-16-lsknet) — `remote-sensing` `object-detection` `backbone` `lsknet` `oriented-bounding-box`
 - **03-09** [Grounding DINO: Marrying DINO with Grounded Pre-Training for Open-Set Object Detection](/readings/2023/2023-03-09-groundingdino) — `open-vocabulary detection` `grounding` `DINO` `vision-language`
