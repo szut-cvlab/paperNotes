@@ -10,6 +10,7 @@
 - **11-09** [When Does Sliced Inference Pay Off? Resolution, Tiling and Dense Fusion for Small Object Detection](/readings/2026/2026-11-09-scahi) — `小目标检测` `切片推理` `密集融合` `航空图像` `VisDrone` `DOTA` `YOLO`
 - **11-04** [Annotator-Free Object Detection via Foundation Model Collaboration](/readings/2026/2026-11-04-annotator-free-det) — `object-detection` `annotation-free` `pseudo-labeling` `SAM` `CLIP` `LVLM` `open-vocabulary` `data-engine`
 - **10-22** [WeVisOne-VL: Unified Visual Perception from Objects to Pixels](/readings/2026/2026-10-22-wevisone-vl) — `vlm` `object-detection` `segmentation` `matting` `rejection` `data-engine` `grpo` `open-source`
+- **10-09** [Jag: Direct Box Prediction for Efficient Visual Grounding](/readings/2026/2026-10-09-jag) — `视觉定位` `视觉 grounding` `直接框预测` `Qwen3.5` `回归头` `低延迟` `多模态模型`
 - **09-30** [GroundingPI: A Grounding Foundation Model towards Physical Intelligence with Visual Primitives](/readings/2026/2026-09-30-groundingpi) — `grounding` `foundation-model` `vlm` `coordinate-token` `grpo` `data-engine` `physical-intelligence` `open-source`
 - **10-16** [Xiaomi-Lens-0 Technical Report](/readings/2026/2026-10-16-xiaomi-lens-0) — `MLLM` `visual-grounding` `reasoning-segmentation` `region-understanding` `mask-supervision`
 - **10-16** [VLX-Seek: Improving VLM Fine-Grained Perception via Region Reference Instead of Coordinate Generation](/readings/2026/2026-10-16-vlx-seek) — `vlm` `grounding` `region-token` `referring-expression` `embodied-vision` `edge-deployment` `open-source`
