@@ -6,6 +6,7 @@
 
 ## 2026
 
+- **11-11** [RSLiveBench-UAV: A Continually Evolving Vision-Language Benchmark for Aerial Spatial Intelligence](/readings/2026/2026-11-11-rslivebench-uav) — `航拍空间智能` `视觉语言基准` `UAV` `持续评估` `实体关联` `具身模型`
 - **11-09** [When Does Sliced Inference Pay Off? Resolution, Tiling and Dense Fusion for Small Object Detection](/readings/2026/2026-11-09-scahi) — `小目标检测` `切片推理` `密集融合` `航空图像` `VisDrone` `DOTA` `YOLO`
 - **11-04** [Annotator-Free Object Detection via Foundation Model Collaboration](/readings/2026/2026-11-04-annotator-free-det) — `object-detection` `annotation-free` `pseudo-labeling` `SAM` `CLIP` `LVLM` `open-vocabulary` `data-engine`
 - **10-22** [WeVisOne-VL: Unified Visual Perception from Objects to Pixels](/readings/2026/2026-10-22-wevisone-vl) — `vlm` `object-detection` `segmentation` `matting` `rejection` `data-engine` `grpo` `open-source`
