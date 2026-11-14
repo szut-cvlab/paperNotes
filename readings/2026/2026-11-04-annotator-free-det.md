@@ -1,7 +1,6 @@
 # Annotator-Free Object Detection via Foundation Model Collaboration
 
 - **来源**: https://arxiv.org/abs/2611.06195
-- **本地PDF**: `../../raw/2026-11-04-annotator-free-det.pdf`
 - **日期**: 2026-11-04
 - **标签**: `object-detection`, `annotation-free`, `pseudo-labeling`, `SAM`, `CLIP`, `LVLM`, `open-vocabulary`, `data-engine`
 - **研究方向**: 目标检测 → 免标注伪标数据构建 → 开放词汇与开放集检测

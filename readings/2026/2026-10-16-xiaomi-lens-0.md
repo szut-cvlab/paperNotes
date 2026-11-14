@@ -1,7 +1,6 @@
 # Xiaomi-Lens-0 Technical Report
 
 - **来源**: arXiv:2610.23279 (https://arxiv.org/abs/2610.23279)
-- **本地PDF**: `../../raw/2026-10-16-xiaomi-lens-0.pdf`
 - **参考链接**: 项目主页 https://seerray-lab.github.io/Xiaomi-Lens-0/
 - **日期**: 2026-10-16（v1）
 - **标签**: `MLLM`, `visual-grounding`, `reasoning-segmentation`, `region-understanding`, `mask-supervision`

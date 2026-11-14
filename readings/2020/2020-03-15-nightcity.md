@@ -1,7 +1,6 @@
 # Night-time Scene Parsing with a Large Real Dataset
 
 - **来源**: https://arxiv.org/abs/2003.06883
-- **本地PDF**: `../../raw/2020-03-15-nightcity.pdf`（本地文件，不随仓库分发）
 - **日期**: 2020-03-15
 - **标签**: `NTSP`, `scene-parsing`, `night-time`, `semantic-segmentation`, `dataset`, `exposure`
 - **研究方向**: Computer Vision → Scene Parsing → Night-time Scene Parsing (NTSP)

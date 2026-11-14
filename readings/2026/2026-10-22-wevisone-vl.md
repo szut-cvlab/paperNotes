@@ -1,7 +1,6 @@
 # WeVisOne-VL: Unified Visual Perception from Objects to Pixels
 
 - **来源**: https://arxiv.org/abs/2610.31329
-- **本地PDF**: `../../raw/2026-10-22-wevisone-vl.pdf`
 - **日期**: 2026-10-22
 - **标签**: `vlm`, `object-detection`, `segmentation`, `matting`, `rejection`, `data-engine`, `grpo`, `open-source`
 - **研究方向**: 2D Object Detection → 开放词汇检测 → VLM-based 统一感知（物体级 + 像素级）

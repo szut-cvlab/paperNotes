@@ -1,7 +1,6 @@
 # GroundingPI: A Grounding Foundation Model towards Physical Intelligence with Visual Primitives
 
 - **来源**: https://arxiv.org/abs/2609.39601
-- **本地PDF**: `../../raw/2026-09-30-groundingpi.pdf`
 - **参考链接**: [项目主页](https://groundingpi.github.io/)、[HuggingFace 模型卡](https://huggingface.co/GroundingPI/GroundingPI)
 - **日期**: 2026-09-30
 - **标签**: `grounding`, `foundation-model`, `vlm`, `coordinate-token`, `grpo`, `data-engine`, `physical-intelligence`, `open-source`

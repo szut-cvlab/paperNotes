@@ -1,7 +1,6 @@
 # Confidence Scores in Open-Vocabulary Detection Are a Biased Mixture of Scale and Semantics
 
 - **来源**: https://arxiv.org/abs/2607.10993
-- **本地PDF**: `../../raw/2026-07-13-ovd-confidence-bias.pdf`
 - **日期**: 2026-07-13
 - **标签**: `open-vocabulary detection`, `confidence calibration`, `scale bias`, `small object`, `diagnosis`
 - **研究方向**: 计算机视觉 → 目标检测 → 开放词汇目标检测

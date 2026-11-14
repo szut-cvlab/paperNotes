@@ -1,7 +1,6 @@
 # RSLiveBench-UAV: A Continually Evolving Vision-Language Benchmark for Aerial Spatial Intelligence
 
 - **来源**: https://arxiv.org/abs/2611.14953
-- **本地PDF**: `../raw/2026-11-11-rslivebench-uav.pdf`
 - **日期**: 2026-11-11
 - **标签**: `航拍空间智能`, `视觉语言基准`, `UAV`, `持续评估`, `实体关联`, `确定性评测`, `具身模型`
 - **研究方向**: 计算机视觉 → 视觉语言基准 → 航拍空间智能（ASI）评测
